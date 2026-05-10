@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { motion } from 'framer-motion';
 import AnimatedCharactersLoginPage from '@/components/ui/animated-characters-login-page';
+import { PillBase } from '@/components/ui/3d-adaptive-navigation-bar';
 import { supabase } from '@/lib/supabase';
 import LegacyStudyCoach from './legacy/LegacyStudyCoach';
 
@@ -20,6 +22,13 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [navPosition, setNavPosition] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('studycouch_nav_position') ?? '{"x":0,"y":0}') as { x: number; y: number };
+    } catch {
+      return { x: 0, y: 0 };
+    }
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -59,6 +68,25 @@ export default function App() {
 
   return (
     <>
+      <motion.div
+        className="fixed top-5 z-[120] hidden cursor-grab md:block"
+        style={{ left: 'calc(50% - 75px)' }}
+        drag
+        dragMomentum={false}
+        initial={false}
+        animate={navPosition}
+        onDragEnd={(_, info) => {
+          const nextPosition = {
+            x: navPosition.x + info.offset.x,
+            y: navPosition.y + info.offset.y,
+          };
+          setNavPosition(nextPosition);
+          localStorage.setItem('studycouch_nav_position', JSON.stringify(nextPosition));
+        }}
+        whileDrag={{ cursor: 'grabbing', scale: 1.02 }}
+      >
+        <PillBase />
+      </motion.div>
       <div className="fixed right-4 top-4 z-[130] text-sm">
         <button
           type="button"

@@ -32,6 +32,8 @@ let S={
   checkinDates:[],
   dailyCount:{},dailyCatCount:{},
   calMonthOffset:0,
+  currentScreen:'home-screen',
+  timer:{mode:'countdown',elapsed:0,remaining:5400,running:false,lastTick:null},
 };
 const BASE_STORAGE_KEY='clf_en3';
 const PROFILE_INDEX_KEY='clf_profiles';
@@ -56,6 +58,15 @@ function makeDataPackage(){
       wrongMap:S.wrongMap,bmMap:S.bmMap,markMap:S.markMap,correctMap:S.correctMap,comments:S.comments,
       totalDone:S.totalDone,totalRight:S.totalRight,checkinDates:S.checkinDates,
       dailyCount:S.dailyCount,dailyCatCount:S.dailyCatCount,
+      currentScreen:S.currentScreen,
+      activeSession:{
+        questionIds:(S.qs||[]).map(q=>q.id),
+        idx:S.idx||0,
+        ans:S.ans||{},
+        sessionWrongIds:S.sessionWrongIds||[],
+        multiPending:S.multiPending||[],
+        timer:S.timer||null,
+      },
     }
   };
 }
@@ -66,6 +77,17 @@ function applyDataPackage(pkg){
   S.totalDone=d.totalDone||0;S.totalRight=d.totalRight||0;
   S.checkinDates=d.checkinDates||[];
   S.dailyCount=d.dailyCount||{};S.dailyCatCount=d.dailyCatCount||{};
+  S.currentScreen=d.currentScreen||'home-screen';
+  if(d.activeSession&&Array.isArray(d.activeSession.questionIds)&&d.activeSession.questionIds.length){
+    const byId=new Map(ALL_QUESTIONS.map(q=>[q.id,q]));
+    S.qs=d.activeSession.questionIds.map(id=>byId.get(id)).filter(Boolean);
+    S.idx=Math.min(d.activeSession.idx||0,Math.max(0,S.qs.length-1));
+    S.ans=d.activeSession.ans||{};
+    S.sessionWrongIds=d.activeSession.sessionWrongIds||[];
+    S.multiPending=d.activeSession.multiPending||[];
+    S.timer={mode:'countdown',elapsed:0,remaining:5400,running:false,lastTick:null,...(d.activeSession.timer||{})};
+    if(S.timer.running)S.timer.lastTick=Date.now();
+  }
 }
 function save(){
   try{localStorage.setItem(profileKey(),JSON.stringify(makeDataPackage().data));}catch(e){}
@@ -166,6 +188,8 @@ function importProfile(input){
 function resetStudyData(preserveProfile=true){
   S.wrongMap={};S.bmMap={};S.markMap={};S.correctMap={};S.comments={};
   S.totalDone=0;S.totalRight=0;S.checkinDates=[];S.dailyCount={};S.dailyCatCount={};
+  S.qs=[];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];S.currentScreen='home-screen';
+  resetTimer(false);
   if(preserveProfile)save();
 }
 function resetSessionState(){S.qs=[];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];}
@@ -252,14 +276,137 @@ function cancelCheckin(d){
   syncCheckin(d,false);
 }
 
+/* ── TIMER ── */
+let timerInterval=null;
+function resetTimer(persist=true){
+  S.timer={mode:'countdown',elapsed:0,remaining:5400,running:false,lastTick:null};
+  if(persist)save();
+  renderTimer();
+}
+function formatTime(seconds){
+  const s=Math.max(0,Math.floor(seconds||0));
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`;
+}
+function tickTimer(){
+  if(!S.timer)resetTimer(false);
+  if(!S.timer.running){renderTimer();return;}
+  const now=Date.now();
+  const last=S.timer.lastTick||now;
+  const delta=Math.max(0,Math.floor((now-last)/1000));
+  if(delta>0){
+    S.timer.elapsed=(S.timer.elapsed||0)+delta;
+    if(S.timer.mode==='countdown')S.timer.remaining=Math.max(0,(S.timer.remaining||5400)-delta);
+    S.timer.lastTick=now;
+    if(S.timer.mode==='countdown'&&S.timer.remaining<=0){
+      S.timer.running=false;
+      toast('Time is up');
+    }
+    save();
+  }
+  renderTimer();
+}
+function clampTimerPart(value,max){
+  const n=parseInt(String(value).replace(/\D/g,''),10);
+  if(Number.isNaN(n))return 0;
+  return Math.max(0,Math.min(max,n));
+}
+function setTimerFromInputs(){
+  if(!S.timer)resetTimer(false);
+  const h=clampTimerPart(document.getElementById('timer-hours')?.value,99);
+  const m=clampTimerPart(document.getElementById('timer-minutes')?.value,59);
+  const s=clampTimerPart(document.getElementById('timer-seconds')?.value,59);
+  const total=h*3600+m*60+s;
+  if(S.timer.mode==='countdown'){
+    S.timer.remaining=total;
+  }else{
+    S.timer.elapsed=total;
+  }
+  S.timer.lastTick=Date.now();
+  save();
+  renderTimer();
+}
+function ensureTimerWidget(){
+  const side=document.querySelector('.quiz-side');
+  const grid=document.getElementById('quiz-side-grid');
+  if(!side||!grid)return;
+  let widget=document.getElementById('exam-timer-widget');
+  if(widget){
+    if(!side.contains(widget))grid.insertAdjacentElement('afterend',widget);
+    return;
+  }
+  widget=document.createElement('div');
+  widget.id='exam-timer-widget';
+  widget.className='exam-timer-widget';
+  widget.innerHTML=`
+    <div class="timer-head"><span class="timer-head-icon">◷</span><span>Exam Timer</span></div>
+    <div class="timer-area">
+      <input class="timer-box" id="timer-hours" type="number" min="0" max="99" inputmode="numeric" aria-label="Timer hours" onchange="setTimerFromInputs()" onblur="setTimerFromInputs()" />
+      <span class="timer-sep">:</span>
+      <input class="timer-box" id="timer-minutes" type="number" min="0" max="59" inputmode="numeric" aria-label="Timer minutes" onchange="setTimerFromInputs()" onblur="setTimerFromInputs()" />
+      <span class="timer-sep">:</span>
+      <input class="timer-box" id="timer-seconds" type="number" min="0" max="59" inputmode="numeric" aria-label="Timer seconds" onchange="setTimerFromInputs()" onblur="setTimerFromInputs()" />
+    </div>
+    <div class="timer-controls">
+      <button class="timer-chip primary" id="timer-run-btn" onclick="toggleTimerRun()">Start</button>
+      <button class="timer-chip" id="timer-mode-btn" onclick="toggleTimerMode()">Count up</button>
+      <button class="timer-chip" onclick="focusCurrentNote()">Notes</button>
+      <button class="timer-chip icon-only" onclick="resetTimer()" title="Reset timer">↻</button>
+    </div>`;
+  grid.insertAdjacentElement('afterend',widget);
+}
+function renderTimer(){
+  ensureTimerWidget();
+  if(!S.timer)resetTimer(false);
+  const hEl=document.getElementById('timer-hours');
+  const mEl=document.getElementById('timer-minutes');
+  const sEl=document.getElementById('timer-seconds');
+  const modeBtn=document.getElementById('timer-mode-btn');
+  const runBtn=document.getElementById('timer-run-btn');
+  if(!hEl||!mEl||!sEl||!modeBtn||!runBtn)return;
+  if(document.activeElement===hEl||document.activeElement===mEl||document.activeElement===sEl)return;
+  const raw=Math.max(0,Math.floor(S.timer.mode==='countdown'?S.timer.remaining:S.timer.elapsed));
+  hEl.value=String(Math.floor(raw/3600)).padStart(2,'0');
+  mEl.value=String(Math.floor((raw%3600)/60)).padStart(2,'0');
+  sEl.value=String(raw%60).padStart(2,'0');
+  modeBtn.textContent=S.timer.mode==='countdown'?'Countdown':'Count up';
+  runBtn.textContent=S.timer.running?'Pause':'Start';
+  runBtn.classList.toggle('paused',!S.timer.running);
+}
+function toggleTimerMode(){
+  if(!S.timer)resetTimer(false);
+  S.timer.mode=S.timer.mode==='countdown'?'countup':'countdown';
+  S.timer.lastTick=Date.now();
+  save();renderTimer();
+}
+function toggleTimerRun(){
+  if(!S.timer)resetTimer(false);
+  S.timer.running=!S.timer.running;
+  S.timer.lastTick=Date.now();
+  save();renderTimer();
+}
+function focusCurrentNote(){
+  const section=document.getElementById('comment-section');
+  if(section&&section.style.display==='none')toast('Submit an answer first, then add notes');
+  section?.scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('comment-textarea')?.focus();
+}
+function startTimerLoop(){
+  if(timerInterval)return;
+  timerInterval=setInterval(tickTimer,1000);
+}
+
 /* ── NAV ── */
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
-  // Show top nav on all screens except home
+  S.currentScreen=id;
+  save();
   const nav=document.getElementById('top-nav');
-  nav.style.display=id==='home-screen'?'none':'flex';
+  if(nav)nav.style.display='none';
+  window.dispatchEvent(new CustomEvent('studycouch:screen-change',{detail:id}));
+  if(id==='quiz-screen')renderTimer();
   // highlight active
   document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active-link'));
   const map={
@@ -308,6 +455,9 @@ function startSession(){
   if(!pool.length){toast('No questions match this type filter');return;}
   shuffle(pool);
   S.qs=pool.slice(0,Math.min(S.count,pool.length));S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];
+  resetTimer(false);
+  S.timer.running=true;S.timer.lastTick=Date.now();
+  save();
   showScreen('quiz-screen');renderQ();
 }
 
@@ -315,6 +465,8 @@ function startSession(){
 function curQ(){return S.qs[S.idx];}
 function renderQ(){
   const q=curQ(),total=S.qs.length,i=S.idx,answered=S.ans[q.id];
+  save();
+  renderTimer();
   document.getElementById('prog-txt').textContent=`Q ${i+1} / ${total}`;
   document.getElementById('prog-fill').style.width=(i/total*100)+'%';
   const right=Object.values(S.ans).filter(a=>a.ok).length,done=Object.keys(S.ans).length;
@@ -559,7 +711,7 @@ function toggleImportant(){
 }
 function jumpToSessionIndex(idx){
   if(idx<0||idx>=S.qs.length)return;
-  S.multiPending=[];S.idx=idx;renderQ();
+  S.multiPending=[];S.idx=idx;save();renderQ();
 }
 function renderQuizSide(){
   const grid=document.getElementById('quiz-side-grid');
@@ -629,14 +781,15 @@ function clearComment(){
   document.getElementById('comment-clear-btn').style.display='none';
   toast('Note cleared');
 }
-function prevQ(){if(S.idx>0){S.idx--;S.multiPending=[];renderQ();}}
-function nextQ(){const q=curQ();if(!S.ans[q.id]){toast('Please submit an answer first');return;}S.multiPending=[];if(S.idx<S.qs.length-1){S.idx++;renderQ();}else showResult();}
+function prevQ(){if(S.idx>0){S.idx--;S.multiPending=[];save();renderQ();}}
+function nextQ(){const q=curQ();if(!S.ans[q.id]){toast('Please submit an answer first');return;}S.multiPending=[];if(S.idx<S.qs.length-1){S.idx++;save();renderQ();}else showResult();}
 
 /* ── RESULT ── */
 function showResult(){
   const total=S.qs.length,correct=Object.values(S.ans).filter(a=>a.ok).length;
   const wrong=Object.values(S.ans).filter(a=>!a.ok).length;
   const pct=total>0?Math.round(correct/total*100):0;
+  if(S.timer){S.timer.running=false;save();renderTimer();}
 
   // Auto check-in if not yet done today
   const t=today();
@@ -1082,5 +1235,19 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 /* ── INIT ── */
 load();updateStats();renderCheckin();
+startTimerLoop();
+if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
+  showScreen('quiz-screen');renderQ();
+}else if(S.currentScreen==='progress-screen'){
+  showProgress();
+}else if(S.currentScreen==='review-screen'){
+  showReview();
+}else if(S.currentScreen==='bookmarks-screen'){
+  showBookmarks();
+}else if(S.currentScreen==='check-screen'){
+  showCheck();
+}else{
+  window.dispatchEvent(new CustomEvent('studycouch:screen-change',{detail:'home-screen'}));
+}
 hydrateFromCloud();
 

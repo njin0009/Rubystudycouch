@@ -41,6 +41,11 @@ declare global {
     };
     hydrateFromCloud?: () => void;
     resetAllData?: () => void;
+    goHome?: () => void;
+    showProgress?: () => void;
+    showReview?: () => void;
+    showBookmarks?: () => void;
+    showCheck?: () => void;
   }
 }
 
