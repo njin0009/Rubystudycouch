@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 38 33% 95%;
+    --foreground: 24 10% 10%;
+    --muted: 36 18% 88%;
+    --muted-foreground: 25 6% 42%;
+    --accent: 35 44% 91%;
+    --accent-foreground: 24 10% 10%;
+    --border: 32 15% 86%;
+    --input: 32 15% 86%;
+    --ring: 174 84% 32%;
+    --primary: 174 84% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 26% 93%;
+    --secondary-foreground: 24 10% 10%;
+    --destructive: 350 76% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer utilities {
+  .bg-grid-white\/\[0\.05\] {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px);
+  }
+}
