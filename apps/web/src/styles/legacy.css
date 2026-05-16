@@ -151,6 +151,44 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;min-
 .cat-chip.selected{background:var(--teal-lt);border-color:var(--teal);color:var(--teal);font-weight:600;}
 .start-btn{width:100%;padding:.95rem;background:var(--amber);color:#fff;border:none;border-radius:var(--radius);font-size:.93rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.03em;transition:all .2s;box-shadow:0 4px 16px rgba(217,119,6,.25);}
 .start-btn:hover{background:#b45309;transform:translateY(-1px);}
+/* ── RESUME QUIZ ── */
+@keyframes resumeGlow{
+  0%,100%{box-shadow:0 4px 16px rgba(13,148,136,.4),0 0 0 0 rgba(13,148,136,.25);}
+  50%{box-shadow:0 6px 24px rgba(13,148,136,.6),0 0 0 8px rgba(13,148,136,0);}
+}
+@keyframes rqbSlideIn{
+  from{opacity:0;transform:translateX(-50%) translateY(-14px);}
+  to{opacity:1;transform:translateX(-50%) translateY(0);}
+}
+#continue-quiz-btn{
+  background:linear-gradient(135deg,#0d9488 0%,#0891b2 100%);
+  box-shadow:0 4px 20px rgba(13,148,136,.45);
+  animation:resumeGlow 2.4s ease-in-out infinite;
+  letter-spacing:.02em;font-size:.97rem;
+}
+#continue-quiz-btn:hover{
+  background:linear-gradient(135deg,#0f766e 0%,#0e7490 100%);
+  box-shadow:0 8px 28px rgba(13,148,136,.55);
+  transform:translateY(-2px);
+  animation:none;
+}
+#resume-quiz-banner{
+  position:fixed;top:72px;left:50%;transform:translateX(-50%);
+  z-index:115;width:max-content;max-width:min(420px,calc(100vw - 2rem));
+  background:var(--surface);border:2px solid var(--teal);border-radius:var(--radius);
+  padding:.85rem 1.1rem;display:flex;align-items:center;gap:.9rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(13,148,136,.15);
+  animation:rqbSlideIn .32s cubic-bezier(.22,1,.36,1);
+  font-family:'DM Sans',sans-serif;
+}
+.rqb-icon{font-size:1.3rem;line-height:1;flex-shrink:0;}
+.rqb-text{flex:1;min-width:0;}
+.rqb-title{font-size:.82rem;font-weight:700;color:var(--teal);}
+.rqb-sub{font-size:.75rem;color:var(--ink3);margin-top:.1rem;}
+.rqb-btn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:.42rem .95rem;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .15s;flex-shrink:0;}
+.rqb-btn:hover{background:#0f766e;transform:translateY(-1px);}
+.rqb-close{background:none;border:none;cursor:pointer;color:var(--ink3);font-size:1rem;padding:.2rem .35rem;border-radius:6px;line-height:1;flex-shrink:0;transition:color .15s;}
+.rqb-close:hover{color:var(--ink);}
 .quick-links{display:flex;gap:.55rem;margin-top:.7rem;}
 .profile-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);}
 .profile-top{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.75rem;}

@@ -425,13 +425,42 @@ function renderResumeBtn(){
       btn=document.createElement('button');
       btn.id='continue-quiz-btn';
       btn.className='start-btn';
-      btn.style.cssText='background:#0d9488;color:#fff;margin-bottom:.5rem;border-color:transparent;';
+      btn.style.marginBottom='.5rem';
       var anchor=document.querySelector('#home-screen .start-btn');
       if(anchor)anchor.insertAdjacentElement('beforebegin',btn);
+      showResumePopup();
     }
-    btn.onclick=function(){showScreen('quiz-screen');renderQ();};
+    btn.onclick=function(){
+      var banner=document.getElementById('resume-quiz-banner');
+      if(banner)banner.remove();
+      showScreen('quiz-screen');renderQ();
+    };
     btn.textContent='↩ Resume Quiz — Q'+(S.idx+1)+' / '+S.qs.length;
-  }else if(btn){btn.remove();}
+  }else{
+    if(btn)btn.remove();
+    var old=document.getElementById('resume-quiz-banner');
+    if(old)old.remove();
+  }
+}
+function showResumePopup(){
+  var existing=document.getElementById('resume-quiz-banner');
+  if(existing)existing.remove();
+  var remaining=S.qs.length-Object.keys(S.ans||{}).length;
+  var banner=document.createElement('div');
+  banner.id='resume-quiz-banner';
+  banner.innerHTML='<div class="rqb-icon">📝</div>'
+    +'<div class="rqb-text">'
+    +'<div class="rqb-title">Quiz in progress</div>'
+    +'<div class="rqb-sub">Q'+(S.idx+1)+' / '+S.qs.length+' · '+remaining+' question'+(remaining!==1?'s':'')+' remaining</div>'
+    +'</div>'
+    +'<button class="rqb-btn" id="resume-banner-btn">↩ Resume</button>'
+    +'<button class="rqb-close" id="dismiss-banner-btn" title="Dismiss">✕</button>';
+  document.body.appendChild(banner);
+  document.getElementById('resume-banner-btn').onclick=function(){
+    banner.remove();showScreen('quiz-screen');renderQ();
+  };
+  document.getElementById('dismiss-banner-btn').onclick=function(){banner.remove();};
+  setTimeout(function(){if(banner.parentNode)banner.remove();},7000);
 }
 window.goQuiz=function(){if(S.qs&&S.qs.length&&Object.keys(S.ans||{}).length<S.qs.length){showScreen('quiz-screen');renderQ();}};
 function updateStats(){
