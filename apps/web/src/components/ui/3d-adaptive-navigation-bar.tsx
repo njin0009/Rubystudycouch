@@ -15,8 +15,10 @@ const navItems: NavItem[] = [
   { label: 'Integrity', id: 'check-screen', action: () => window.showCheck?.() },
 ];
 
+// quiz-screen and result-screen are not in navItems — show a neutral label instead
+// of mapping them to 'home-screen', which caused the pill to show "Home" and then
+// trigger goHome() when a touch-synthesised click landed on that button on expansion.
 function screenToNavId(screenId: string) {
-  if (screenId === 'quiz-screen' || screenId === 'result-screen') return 'home-screen';
   return screenId;
 }
 
@@ -26,6 +28,11 @@ export function PillBase() {
   const [hovering, setHovering] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Blocks clicks on nav items for 300 ms after the pill expands so that the
+  // touch-synthesised click (mouseenter → expand → click) cannot accidentally
+  // trigger a navigation action the user never intended.
+  const blockClicksRef = useRef(false);
+  const blockClicksTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pillWidth = useSpring(150, { stiffness: 220, damping: 25, mass: 1 });
 
@@ -44,6 +51,12 @@ export function PillBase() {
       setExpanded(true);
       pillWidth.set(520);
       if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+      // Block nav-item clicks for 300 ms so touch-synthesised clicks don't fire
+      blockClicksRef.current = true;
+      if (blockClicksTimerRef.current) clearTimeout(blockClicksTimerRef.current);
+      blockClicksTimerRef.current = setTimeout(() => {
+        blockClicksRef.current = false;
+      }, 300);
     } else {
       hoverTimeoutRef.current = setTimeout(() => {
         setExpanded(false);
@@ -53,10 +66,12 @@ export function PillBase() {
 
     return () => {
       if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+      if (blockClicksTimerRef.current) clearTimeout(blockClicksTimerRef.current);
     };
   }, [hovering, pillWidth]);
 
   const handleSectionClick = (item: NavItem) => {
+    if (blockClicksRef.current) return;
     setIsTransitioning(true);
     setActiveSection(item.id);
     setHovering(false);
@@ -64,7 +79,10 @@ export function PillBase() {
     setTimeout(() => setIsTransitioning(false), 400);
   };
 
-  const activeItem = navItems.find((item) => item.id === activeSection) ?? navItems[0];
+  // When on quiz-screen or result-screen there is no matching navItem — show a
+  // neutral indicator rather than falling back to the first item (Home).
+  const activeItem = navItems.find((item) => item.id === activeSection);
+  const collapsedLabel = activeItem?.label ?? '▶ Quiz';
 
   return (
     <motion.nav
@@ -110,14 +128,14 @@ export function PillBase() {
           <div className="flex items-center">
             <AnimatePresence mode="wait">
               <motion.span
-                key={activeItem.id}
+                key={activeSection}
                 initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
                 className="whitespace-nowrap text-[15.5px] font-bold tracking-normal text-[#1a1a1a]"
               >
-                {activeItem.label}
+                {collapsedLabel}
               </motion.span>
             </AnimatePresence>
           </div>
