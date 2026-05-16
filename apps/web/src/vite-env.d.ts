@@ -46,6 +46,8 @@ declare global {
     showReview?: () => void;
     showBookmarks?: () => void;
     showCheck?: () => void;
+    goQuiz?: () => void;
+    restoreCurrentScreen?: () => void;
   }
 }
 

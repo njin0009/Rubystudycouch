@@ -189,6 +189,7 @@ function resetStudyData(preserveProfile=true){
   S.wrongMap={};S.bmMap={};S.markMap={};S.correctMap={};S.comments={};
   S.totalDone=0;S.totalRight=0;S.checkinDates=[];S.dailyCount={};S.dailyCatCount={};
   S.qs=[];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];S.currentScreen='home-screen';
+  window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:false}));
   resetTimer(false);
   if(preserveProfile)save();
 }
@@ -415,7 +416,24 @@ function showScreen(id){
   const links=document.querySelectorAll('.nav-links .nav-link');
   if(map[id])links[map[id]-1].classList.add('active-link');
 }
-function goHome(){updateStats();renderCheckin();renderProfiles();showScreen('home-screen');}
+function goHome(){updateStats();renderCheckin();renderProfiles();renderResumeBtn();showScreen('home-screen');}
+function renderResumeBtn(){
+  var inProgress=S.qs&&S.qs.length&&Object.keys(S.ans||{}).length<S.qs.length;
+  var btn=document.getElementById('continue-quiz-btn');
+  if(inProgress){
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id='continue-quiz-btn';
+      btn.className='start-btn';
+      btn.style.cssText='background:#0d9488;color:#fff;margin-bottom:.5rem;border-color:transparent;';
+      var anchor=document.querySelector('#home-screen .start-btn');
+      if(anchor)anchor.insertAdjacentElement('beforebegin',btn);
+    }
+    btn.onclick=function(){showScreen('quiz-screen');renderQ();};
+    btn.textContent='↩ Resume Quiz — Q'+(S.idx+1)+' / '+S.qs.length;
+  }else if(btn){btn.remove();}
+}
+window.goQuiz=function(){if(S.qs&&S.qs.length&&Object.keys(S.ans||{}).length<S.qs.length){showScreen('quiz-screen');renderQ();}};
 function updateStats(){
   const mastered=Object.keys(S.correctMap||{}).length;
   const remaining=Math.max(0,INTEGRITY.total-mastered);
@@ -458,6 +476,7 @@ function startSession(){
   resetTimer(false);
   S.timer.running=true;S.timer.lastTick=Date.now();
   save();
+  window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));
   showScreen('quiz-screen');renderQ();
 }
 
@@ -819,6 +838,7 @@ function showResult(){
     retryBtn.style.display='none';
   }
 
+  window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:false}));
   showScreen('result-screen');
 }
 
@@ -828,6 +848,7 @@ function retrySessionWrong(){
   const pool=ALL_QUESTIONS.filter(q=>ids.includes(q.id));
   shuffle(pool);
   S.qs=pool;S.idx=0;S.ans={};S.sessionWrongIds=[];
+  window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));
   save();showScreen('quiz-screen');renderQ();
   toast(`Retrying ${pool.length} mistakes — shuffled!`);
 }
@@ -1128,6 +1149,7 @@ function practicePool(pool){
   shuffle([...pool]);// shuffle a copy, set session
   const shuffled=shuffle([...pool]);
   S.qs=shuffled;S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];
+  window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));
   showScreen('quiz-screen');renderQ();
   toast(`Starting ${shuffled.length} questions — shuffled!`);
 }
@@ -1210,7 +1232,7 @@ function removeBm(id){
   showBookmarks();updateStats();toast('Removed from saved');
 }
 
-function jumpTo(id){const q=ALL_QUESTIONS.find(x=>x.id===id);if(!q)return;S.qs=[q];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];save();showScreen('quiz-screen');renderQ();}
+function jumpTo(id){const q=ALL_QUESTIONS.find(x=>x.id===id);if(!q)return;S.qs=[q];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];save();window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));showScreen('quiz-screen');renderQ();}
 
 /* ── RESET ALL ── */
 function resetAllData(){
@@ -1256,6 +1278,6 @@ window.restoreCurrentScreen=function(){
   else if(S.currentScreen==='review-screen'){showReview();}
   else if(S.currentScreen==='bookmarks-screen'){showBookmarks();}
   else if(S.currentScreen==='check-screen'){showCheck();}
-  else{showScreen('home-screen');updateStats();renderCheckin();}
+  else{showScreen('home-screen');updateStats();renderCheckin();renderProfiles();renderResumeBtn();}
 };
 
