@@ -32,6 +32,7 @@ export default function LegacyStudyCoach() {
     async function bootLegacyApp() {
       if (window.__studyCouchLegacyLoaded) {
         window.hydrateFromCloud?.();
+        window.restoreCurrentScreen?.();
         return;
       }
 

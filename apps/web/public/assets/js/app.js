@@ -301,8 +301,8 @@ function tickTimer(){
     if(S.timer.mode==='countdown'&&S.timer.remaining<=0){
       S.timer.running=false;
       toast('Time is up');
+      save();
     }
-    save();
   }
   renderTimer();
 }
@@ -465,7 +465,6 @@ function startSession(){
 function curQ(){return S.qs[S.idx];}
 function renderQ(){
   const q=curQ(),total=S.qs.length,i=S.idx,answered=S.ans[q.id];
-  save();
   renderTimer();
   document.getElementById('prog-txt').textContent=`Q ${i+1} / ${total}`;
   document.getElementById('prog-fill').style.width=(i/total*100)+'%';
@@ -829,7 +828,7 @@ function retrySessionWrong(){
   const pool=ALL_QUESTIONS.filter(q=>ids.includes(q.id));
   shuffle(pool);
   S.qs=pool;S.idx=0;S.ans={};S.sessionWrongIds=[];
-  showScreen('quiz-screen');renderQ();
+  save();showScreen('quiz-screen');renderQ();
   toast(`Retrying ${pool.length} mistakes — shuffled!`);
 }
 
@@ -1211,7 +1210,7 @@ function removeBm(id){
   showBookmarks();updateStats();toast('Removed from saved');
 }
 
-function jumpTo(id){const q=ALL_QUESTIONS.find(x=>x.id===id);if(!q)return;S.qs=[q];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];showScreen('quiz-screen');renderQ();}
+function jumpTo(id){const q=ALL_QUESTIONS.find(x=>x.id===id);if(!q)return;S.qs=[q];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];save();showScreen('quiz-screen');renderQ();}
 
 /* ── RESET ALL ── */
 function resetAllData(){
@@ -1250,4 +1249,13 @@ if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
   window.dispatchEvent(new CustomEvent('studycouch:screen-change',{detail:'home-screen'}));
 }
 hydrateFromCloud();
+
+window.restoreCurrentScreen=function(){
+  if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){showScreen('quiz-screen');renderQ();}
+  else if(S.currentScreen==='progress-screen'){showProgress();}
+  else if(S.currentScreen==='review-screen'){showReview();}
+  else if(S.currentScreen==='bookmarks-screen'){showBookmarks();}
+  else if(S.currentScreen==='check-screen'){showCheck();}
+  else{showScreen('home-screen');updateStats();renderCheckin();}
+};
 
