@@ -514,7 +514,7 @@ const FinalCTA = ({ p, onBack, onRegister }: { p: Palette; onBack?: () => void; 
 );
 
 const Footer = ({ p }: { p: Palette }) => (
-  <footer style={{ padding: '28px 48px', borderTop: `1px solid ${p.ink}18`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: `${p.ink}99`, fontFamily: "'Caveat', cursive", fontSize: 16 } as React.CSSProperties}>
+  <footer style={{ padding: '28px 48px', borderTop: `1px solid ${p.ink}18`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: `${p.ink}99`, fontFamily: "'Caveat', cursive", fontSize: 16 }}>
     <div>© 2026 StudyCouch · made between classes ✺</div>
     <div style={{ display: 'flex', gap: 20 }}>
       {['twitter', 'instagram', 'tiktok', 'contact'].map((x) => (
