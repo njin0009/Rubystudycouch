@@ -143,6 +143,11 @@ const EyeBall = ({
 
 type AuthMode = 'login' | 'register';
 
+type LoginPageProps = {
+  initialMode?: AuthMode;
+  onBackToCover?: () => void;
+};
+
 const PASSWORD_REQUIREMENTS = [
   { label: '6-12 characters', test: (value: string) => value.length >= 6 && value.length <= 12 },
   { label: 'At least one uppercase letter', test: (value: string) => /[A-Z]/.test(value) },
@@ -177,8 +182,8 @@ function getFriendlyAuthError(message: string) {
   return message;
 }
 
-function LoginPage() {
-  const [mode, setMode] = useState<AuthMode>('login');
+function LoginPage({ initialMode = 'login', onBackToCover }: LoginPageProps) {
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -551,6 +556,16 @@ function LoginPage() {
 
       <div className="flex items-center justify-center bg-background p-8">
         <div className="w-full max-w-[420px]">
+          {onBackToCover && (
+            <button
+              type="button"
+              className="mb-8 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              onClick={onBackToCover}
+            >
+              ← Back to StudyCouch
+            </button>
+          )}
+
           <div className="mb-12 flex items-center justify-center gap-2 text-lg font-semibold lg:hidden">
             <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Sparkles className="size-4 text-primary" />

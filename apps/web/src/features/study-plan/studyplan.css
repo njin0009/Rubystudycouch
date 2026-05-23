@@ -1,0 +1,283 @@
+/* StudyPlanPage — cover design overrides
+   Scoped under .sp-page to avoid bleeding into other pages.
+   !important is intentional: we're overriding Tailwind utility classes
+   which all have single-class specificity (0,1,0). */
+
+/* ── Page ── */
+.sp-page {
+  background: #f6eedc !important;
+  color: #2a1f18;
+  font-family: 'DM Sans', 'Geist', ui-sans-serif, sans-serif;
+}
+
+/* ── Section cards ── */
+.sp-page section.rounded-lg {
+  background: #fffbf1 !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 4px 5px 0 #2a1f18 !important;
+}
+
+/* ── Mini card (bottom-right widget) ── */
+.sp-mini-card {
+  background: #fffbf1 !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 4px 5px 0 #2a1f18 !important;
+}
+
+/* ── Sub-sections inside cards ── */
+.sp-page .rounded-lg.bg-stone-50,
+.sp-page .rounded-lg.bg-stone-100 {
+  background: rgba(42, 31, 24, 0.05) !important;
+}
+.sp-page .bg-stone-100 {
+  background: rgba(42, 31, 24, 0.07) !important;
+}
+.sp-page .bg-stone-50 {
+  background: rgba(42, 31, 24, 0.04) !important;
+}
+
+/* Dark card (current plan selected) */
+.sp-page .bg-stone-950,
+.sp-page .rounded-lg.bg-stone-950 {
+  background: #2a1f18 !important;
+}
+
+/* ── Shadows ── */
+.sp-page .shadow-sm {
+  box-shadow: 3px 4px 0 #2a1f18 !important;
+}
+.sp-page .shadow-lg {
+  box-shadow: 4px 5px 0 #2a1f18 !important;
+}
+
+/* ── White surfaces inside cards ── */
+.sp-page .bg-white {
+  background: #fffbf1 !important;
+}
+.sp-page .bg-white\/80 {
+  background: rgba(255, 251, 241, 0.8) !important;
+}
+.sp-page .bg-white\/15 {
+  background: rgba(255, 251, 241, 0.15) !important;
+}
+
+/* ── Ruby replaces teal-700 ── */
+.sp-page .text-teal-700 { color: #a0182b !important; }
+.sp-page .text-teal-800 { color: #8a1525 !important; }
+.sp-page .text-teal-900 { color: #2a1f18 !important; }
+.sp-page .bg-teal-700  { background: #a0182b !important; }
+.sp-page .bg-teal-50   { background: rgba(160, 24, 43, 0.08) !important; }
+.sp-page .bg-teal-100  { background: rgba(160, 24, 43, 0.12) !important; }
+.sp-page .hover\:bg-teal-800:hover { background: #7a1221 !important; }
+.sp-page .hover\:bg-teal-100:hover { background: rgba(160, 24, 43, 0.12) !important; }
+.sp-page .border-teal-700 { border-color: #a0182b !important; }
+.sp-page .ring-teal-700  { --tw-ring-color: #a0182b !important; }
+
+/* On dark card: teal-200 → yellow, teal-300 → green */
+.sp-page .text-teal-200  { color: #f2c94c !important; }
+.sp-page .text-teal-300  { color: #6b8e5a !important; }
+.sp-page .bg-teal-300    { background: #6b8e5a !important; }
+
+/* ── Stone text palette ── */
+.sp-page .text-stone-950 { color: #2a1f18 !important; }
+.sp-page .text-stone-700 { color: rgba(42, 31, 24, 0.72) !important; }
+.sp-page .text-stone-600 { color: rgba(42, 31, 24, 0.65) !important; }
+.sp-page .text-stone-500 { color: rgba(42, 31, 24, 0.55) !important; }
+.sp-page .text-stone-400 { color: rgba(42, 31, 24, 0.42) !important; }
+.sp-page .text-stone-300 { color: rgba(42, 31, 24, 0.32) !important; }
+
+/* ── Borders ── */
+.sp-page .border-stone-200 { border-color: rgba(42, 31, 24, 0.2) !important; }
+.sp-page .border-stone-300 { border-color: rgba(42, 31, 24, 0.3) !important; }
+
+/* ── Amber warning card ── */
+.sp-page .border-amber-300 { border-color: #f2c94c !important; }
+.sp-page .bg-amber-50      { background: rgba(242, 201, 76, 0.15) !important; }
+.sp-page .text-amber-950   { color: #2a1f18 !important; }
+.sp-page .text-amber-900   { color: rgba(42, 31, 24, 0.82) !important; }
+
+/* ── Plan option cards ── */
+/* Selected plan option → yellow highlight */
+.sp-page button.border-teal-700.bg-teal-50 {
+  background: rgba(242, 201, 76, 0.22) !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 3px 4px 0 #2a1f18 !important;
+}
+/* Non-selected plan option card */
+.sp-page button.rounded-lg.border.bg-white {
+  background: #fffbf1 !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 3px 4px 0 #2a1f18 !important;
+}
+.sp-page button.rounded-lg.border.bg-white:hover {
+  background: rgba(242, 201, 76, 0.12) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 5px 7px 0 #2a1f18 !important;
+}
+
+/* ── Inputs ── */
+.sp-page input[type="date"],
+.sp-page input[type="time"],
+.sp-page input[type="number"] {
+  background: #fffbf1 !important;
+  border: 2px solid rgba(42, 31, 24, 0.3) !important;
+  color: #2a1f18 !important;
+  box-shadow: 2px 3px 0 rgba(42, 31, 24, 0.2) !important;
+  border-radius: 8px !important;
+}
+.sp-page input:focus {
+  border-color: #a0182b !important;
+  box-shadow: 2px 3px 0 #a0182b !important;
+  outline: none !important;
+}
+
+/* ── Textarea (signature) ── */
+.sp-page textarea {
+  background: #fffbf1 !important;
+  border: 2px solid rgba(42, 31, 24, 0.3) !important;
+  color: #2a1f18 !important;
+  box-shadow: 2px 3px 0 rgba(42, 31, 24, 0.2) !important;
+}
+.sp-page textarea:focus {
+  border-color: #a0182b !important;
+  box-shadow: 2px 3px 0 #a0182b !important;
+  outline: none !important;
+}
+
+/* ── Primary buttons ── */
+/* "Confirm details" (bg-stone-950) */
+.sp-page button.bg-stone-950 {
+  background: #2a1f18 !important;
+  color: #fffbf1 !important;
+  border: 2px solid rgba(42, 31, 24, 0.5) !important;
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.28) !important;
+  border-radius: 999px !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+.sp-page button.bg-stone-950:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.28) !important;
+}
+
+/* "Save selected plan" (bg-teal-700) */
+.sp-page button.bg-teal-700 {
+  background: #a0182b !important;
+  color: #fffbf1 !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 3px 4px 0 #2a1f18 !important;
+  border-radius: 999px !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+.sp-page button.bg-teal-700:hover:not(:disabled) {
+  background: #8a1525 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 4px 6px 0 #2a1f18 !important;
+}
+.sp-page button.bg-teal-700:disabled {
+  background: rgba(42, 31, 24, 0.12) !important;
+  color: rgba(42, 31, 24, 0.38) !important;
+  border-color: rgba(42, 31, 24, 0.18) !important;
+  box-shadow: none !important;
+}
+
+/* "Back to practice" and "Edit" and "Adjust" ghost buttons */
+.sp-page button.border.border-stone-300.bg-white,
+.sp-page button.rounded-md.border.border-stone-300 {
+  background: #fffbf1 !important;
+  color: #2a1f18 !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 2px 3px 0 #2a1f18 !important;
+  border-radius: 999px !important;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s !important;
+}
+.sp-page button.border.border-stone-300.bg-white:hover,
+.sp-page button.rounded-md.border.border-stone-300:hover {
+  background: #f2c94c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 3px 4px 0 #2a1f18 !important;
+}
+
+/* Progress bars */
+.sp-page .bg-teal-700.h-full { background: #a0182b !important; }
+.sp-page .bg-teal-300.h-full { background: #6b8e5a !important; }
+
+/* "Recommended" badge */
+.sp-page .rounded-md.bg-teal-700 {
+  background: #a0182b !important;
+  border-radius: 6px !important;
+}
+.sp-page .rounded-md.bg-teal-50 {
+  background: rgba(160, 24, 43, 0.08) !important;
+  color: #a0182b !important;
+}
+.sp-page .rounded-md.bg-teal-100 {
+  background: rgba(160, 24, 43, 0.12) !important;
+  color: #2a1f18 !important;
+}
+
+/* Risk badge */
+.sp-page .rounded-md.bg-teal-50.px-2\.5 {
+  background: rgba(160, 24, 43, 0.08) !important;
+  color: #a0182b !important;
+  border: 1.5px solid rgba(160, 24, 43, 0.25) !important;
+}
+
+/* Section headings — Fraunces font */
+.sp-page h1,
+.sp-page h2,
+.sp-page h3 {
+  font-family: 'Fraunces', Georgia, serif !important;
+}
+
+/* Big stat numbers */
+.sp-page .text-2xl,
+.sp-page .text-lg {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+/* Dark card text colours override */
+.sp-page .bg-stone-950 .text-stone-300 {
+  color: rgba(255, 251, 241, 0.55) !important;
+}
+.sp-page .bg-stone-950 .text-stone-400 {
+  color: rgba(255, 251, 241, 0.42) !important;
+}
+.sp-page .bg-stone-950 .text-white {
+  color: #fffbf1 !important;
+}
+
+/* Profile avatar area */
+.sp-page .bg-stone-100.rounded-lg {
+  background: rgba(42, 31, 24, 0.07) !important;
+}
+
+/* Image inside avatar box */
+.sp-page .overflow-hidden.rounded-lg.bg-stone-100 {
+  border: 2px solid rgba(42, 31, 24, 0.2) !important;
+}
+
+/* Camera upload button */
+.sp-page .absolute.-bottom-2 {
+  background: #fffbf1 !important;
+  border: 2px solid #2a1f18 !important;
+  box-shadow: 2px 2px 0 #2a1f18 !important;
+  transition: transform 0.12s !important;
+}
+.sp-page .absolute.-bottom-2:hover {
+  background: #f2c94c !important;
+  transform: translateY(-1px) !important;
+}
+
+/* CLF-C02 candidate badge */
+.sp-page .rounded-md.bg-teal-50.px-2 {
+  background: rgba(160, 24, 43, 0.08) !important;
+  color: #a0182b !important;
+}
+
+/* hover:bg-stone-100 buttons */
+.sp-page .hover\:bg-stone-100:hover {
+  background: rgba(42, 31, 24, 0.07) !important;
+}
+.sp-page .hover\:bg-stone-50:hover {
+  background: rgba(42, 31, 24, 0.04) !important;
+}
