@@ -17,6 +17,15 @@ import { PALETTES, applyPalette, getSavedPalette, savePalette, type PaletteId } 
 import LegacyStudyCoach from './legacy/LegacyStudyCoach';
 import '@/styles/app.css';
 
+function getAvatarUrl(userId: string): string | null {
+  try {
+    const raw = localStorage.getItem(`studycouch_local_profile:${userId}`);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as { avatarDataUrl?: string };
+    return p.avatarDataUrl ?? null;
+  } catch { return null; }
+}
+
 async function ensureProfile(session: Session) {
   const user = session.user;
 
@@ -47,6 +56,7 @@ export default function App() {
       return { x: 0, y: 0 };
     }
   });
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -99,6 +109,10 @@ export default function App() {
       window.clearInterval(timer);
     };
   }, [session]);
+
+  useEffect(() => {
+    setAvatarUrl(session ? getAvatarUrl(session.user.id) : null);
+  }, [session?.user.id]);
 
   // Apply palette on mount and whenever it changes
   useEffect(() => {
@@ -168,6 +182,7 @@ export default function App() {
   function openPlan() {
     setStudySnapshot(readStudySnapshot());
     setStudyPlan(readStudyPlan(userId));
+    setAvatarUrl(getAvatarUrl(userId));
     setIsPlanOpen(true);
     setIsAccountMenuOpen(false);
   }
@@ -187,6 +202,7 @@ export default function App() {
     saveStudyPlan(userId, nextPlan);
     setStudyPlan(nextPlan);
     setStudySnapshot(readStudySnapshot());
+    setAvatarUrl(getAvatarUrl(userId));
     setIsPlanOpen(false);
   }
 
@@ -220,6 +236,10 @@ export default function App() {
           onClick={() => setIsAccountMenuOpen((o) => !o)}
           aria-haspopup="menu"
         >
+          {avatarUrl
+            ? <img src={avatarUrl} alt="" className="acct-btn-avatar" />
+            : <span className="acct-btn-initial">{avatarInitial}</span>
+          }
           Hello, {displayName}
         </button>
 
@@ -227,7 +247,12 @@ export default function App() {
           <div className="acct-menu" role="menu">
             {/* User info */}
             <div className="acct-menu-header">
-              <div className="acct-menu-avatar">{avatarInitial}</div>
+              <div className="acct-menu-avatar">
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="" />
+                  : avatarInitial
+                }
+              </div>
               <div className="acct-menu-user">
                 <div className="acct-menu-name">{displayName}</div>
                 <div className="acct-menu-email">{userEmail}</div>

@@ -131,7 +131,7 @@ const Nav = ({ p, onBack, onLogin, onRegister }: { p: Palette; onBack?: () => vo
       <span style={{ fontFamily: "'Caveat', cursive", fontSize: 17, color: p.accent, transform: 'rotate(-6deg)', marginLeft: 4 }}>CLF-C02</span>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-      {(['Functions', 'How it works', 'For you'] as const).map((x) => (
+      {(['Functions', 'How it works', 'For you', 'Pricing'] as const).map((x) => (
         <a key={x} href={`#${x.toLowerCase().replace(/ /g, '')}`} style={{
           color: `${p.ink}B3`, textDecoration: 'none', fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
         }}>{x}</a>
@@ -482,6 +482,133 @@ const Quotes = ({ p }: { p: Palette }) => {
   );
 };
 
+// ── Pricing ───────────────────────────────────────────────────────────────────
+
+const PLANS = [
+  {
+    id: 'free',
+    name: 'Couch',
+    price: 'Free',
+    priceNote: 'forever, no asterisk.',
+    features: [
+      'Focus timer + 6 soundscapes',
+      '10 AI buddy chats / week',
+      'Manual flashcards',
+      'Solo study rooms',
+    ],
+    cta: 'Start free →',
+    featured: false,
+  },
+  {
+    id: 'plus',
+    name: 'Couch+',
+    price: '$6',
+    priceNote: '/mo, billed yearly · $4 with student ID',
+    features: [
+      'Everything in Couch',
+      'Unlimited AI buddy',
+      'Auto flashcards from any file',
+      'Distraction shield',
+      'Group rooms (up to 8)',
+      'Weekly progress report',
+    ],
+    cta: 'Get Couch+ →',
+    featured: true,
+  },
+  {
+    id: 'group',
+    name: 'Study group',
+    price: '$4',
+    priceNote: '/person/mo · min 4 people',
+    features: [
+      'Everything in Couch+',
+      'Shared decks & notes',
+      'Group analytics',
+      'Group goals & cheers',
+    ],
+    cta: 'Set up group →',
+    featured: false,
+  },
+] as const;
+
+const Pricing = ({ p, onRegister }: { p: Palette; onRegister: () => void }) => (
+  <section id="pricing" style={{ padding: '100px 48px', background: p.bg, borderTop: `2px solid ${p.ink}` }}>
+    <div style={{ textAlign: 'center', marginBottom: 64 }}>
+      <div style={{ fontFamily: "'Caveat', cursive", fontSize: 26, color: p.accent, marginBottom: 4 }}>pricing</div>
+      <h2 style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400, fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 1.05, letterSpacing: '-0.03em', color: p.ink, margin: '8px auto 0', maxWidth: 900 }}>
+        Free for the basics.{' '}
+        <em style={{ fontStyle: 'italic', color: p.accent }}>
+          Less than a{' '}
+          <Marker color={p.yellow}>coffee</Marker>
+        </em>
+        {' '}for the rest.
+      </h2>
+    </div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, maxWidth: 1100, margin: '0 auto' }}>
+      {PLANS.map((plan) => (
+        <div key={plan.id} style={{
+          background: plan.featured ? p.ink : p.paper,
+          color: plan.featured ? p.bg : p.ink,
+          border: `2px solid ${p.ink}`,
+          borderRadius: 18,
+          padding: '32px 28px',
+          boxShadow: plan.featured ? `5px 6px 0 ${p.accent}` : `5px 6px 0 ${p.ink}`,
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {plan.featured && (
+            <div style={{
+              position: 'absolute', top: -16, right: 24,
+              background: p.yellow, color: p.ink,
+              fontFamily: "'Caveat', cursive", fontSize: 16, fontWeight: 700,
+              padding: '4px 16px', borderRadius: 999,
+              border: `2px solid ${p.ink}`,
+              transform: 'rotate(-2deg)',
+            }}>most chosen!</div>
+          )}
+
+          <div style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500, fontSize: 22, marginBottom: 8 }}>
+            {plan.name}
+          </div>
+          <div style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400, fontSize: 'clamp(52px, 5vw, 68px)', lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 6 }}>
+            {plan.price}
+          </div>
+          <div style={{ fontFamily: "'Caveat', cursive", fontSize: 16, opacity: 0.65, marginBottom: 28 }}>
+            {plan.priceNote}
+          </div>
+
+          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+            {plan.features.map((f) => (
+              <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, lineHeight: 1.45 }}>
+                <span style={{ color: plan.featured ? p.yellow : p.accent, fontWeight: 700, flexShrink: 0 }}>✓</span>
+                {f}
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            onClick={onRegister}
+            style={{
+              background: plan.featured ? p.accent : 'transparent',
+              color: plan.featured ? p.bg : p.ink,
+              border: `2px solid ${plan.featured ? p.accent : p.ink}`,
+              borderRadius: 999,
+              padding: '13px 20px',
+              fontSize: 15, fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              boxShadow: plan.featured ? `3px 4px 0 ${p.yellow}` : `3px 4px 0 ${p.ink}`,
+            }}
+          >{plan.cta}</button>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
 const FinalCTA = ({ p, onBack, onRegister }: { p: Palette; onBack?: () => void; onRegister: () => void }) => (
   <section style={{ padding: '100px 48px', background: p.paper, textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: `2px solid ${p.ink}` }}>
     <Sparkle color={p.accent} size={36} style={{ position: 'absolute', left: '10%', top: 80 }} />
@@ -609,6 +736,7 @@ export default function StudyCouchCoverPage({ onLogin, onRegister, onBack, palet
       <HowItWorks p={p} />
       <Personas p={p} />
       <Quotes p={p} />
+      <Pricing p={p} onRegister={onRegister} />
       <FinalCTA p={p} onBack={onBack} onRegister={onRegister} />
       <Footer p={p} />
       <ThemeSwitcher palette={palette} setPalette={setPalette} p={p} />
