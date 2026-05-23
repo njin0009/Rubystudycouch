@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { studySync } from '@/lib/studySync';
 import legacyMarkup from './legacyMarkup';
 
@@ -24,13 +24,17 @@ const loadScript = (src: string) =>
     }
   });
 
-export default function LegacyStudyCoach() {
+// memo: LegacyStudyCoach has no props, so it must never re-render due to parent
+// state changes (e.g. Supabase token refresh re-rendering App). A re-render would
+// re-run dangerouslySetInnerHTML reconciliation and could cause subtle DOM resets.
+export default memo(function LegacyStudyCoach() {
   useEffect(() => {
     let cancelled = false;
     window.StudyCouchSync = studySync;
 
     async function bootLegacyApp() {
       if (window.__studyCouchLegacyLoaded) {
+        window.reloadStudyData?.();
         window.hydrateFromCloud?.();
         window.restoreCurrentScreen?.();
         return;
@@ -43,6 +47,9 @@ export default function LegacyStudyCoach() {
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
       await loadScript('/assets/js/questions.js');
+      if (cancelled) return;
+
+      await loadScript('/assets/js/explanations.js');
       if (cancelled) return;
 
       await loadScript('/assets/js/app.js');
@@ -59,4 +66,4 @@ export default function LegacyStudyCoach() {
   }, []);
 
   return <div dangerouslySetInnerHTML={{ __html: legacyMarkup }} />;
-}
+});

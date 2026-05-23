@@ -41,10 +41,18 @@ export default function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (nextSession) {
+        setSession((prev) => {
+          // If the same user is still logged in (token refresh, INITIAL_SESSION, etc.)
+          // return the *previous* object so React sees no state change and skips
+          // re-rendering the entire tree — most importantly LegacyStudyCoach.
+          if (prev?.user.id === nextSession.user.id) return prev;
+          return nextSession;
+        });
         void ensureProfile(nextSession);
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
       }
     });
 

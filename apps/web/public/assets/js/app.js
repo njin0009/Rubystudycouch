@@ -509,6 +509,8 @@ function startSession(){
   showScreen('quiz-screen');renderQ();
 }
 
+function getExplanation(qId){return(window.EXPLANATIONS&&window.EXPLANATIONS[String(qId)])||'';}
+
 /* ── QUIZ ── */
 function curQ(){return S.qs[S.idx];}
 function renderQ(){
@@ -619,6 +621,16 @@ function renderQ(){
     pdfLink.style.display=pdfDoc?'inline-flex':'none';
     pdfLink.textContent=`📄 View PDF — page ${q.id}`;
   }else{pdfLink.style.display='none';}
+  // Inline explanation
+  let fbExp=document.getElementById('fb-explanation');
+  if(!fbExp){
+    fbExp=document.createElement('div');
+    fbExp.id='fb-explanation';fbExp.className='fb-explanation';
+    const fbSub=document.getElementById('fb-sub');
+    if(fbSub)fbSub.after(fbExp);
+  }
+  const exp=answered?getExplanation(q.id):'';
+  fbExp.textContent=exp;fbExp.style.display=exp?'':'none';
   document.getElementById('prev-btn').style.display=i>0?'block':'none';
   const nb=document.getElementById('next-btn');
   nb.style.display=answered?'block':'none';
@@ -867,6 +879,29 @@ function showResult(){
     retryBtn.style.display='none';
   }
 
+  // Wrong-questions review section with explanations
+  const oldSec=document.getElementById('session-review-section');
+  if(oldSec)oldSec.remove();
+  const sessionWrongsForReview=[...new Set(S.sessionWrongIds)];
+  if(sessionWrongsForReview.length){
+    const byId=new Map(ALL_QUESTIONS.map(function(q){return[q.id,q];}));
+    let rHtml='<div class="srr-title">Mistakes Review</div>';
+    sessionWrongsForReview.forEach(function(id){
+      const q=byId.get(id);if(!q)return;
+      const exp=getExplanation(id);
+      const cts=correctKeys(q).map(function(k){return k+': '+q.options[k];}).join(' · ');
+      rHtml+='<div class="srr-item">'
+        +'<div class="srr-q"><span class="srr-num">#'+q.id+'</span>'+q.question+'</div>'
+        +'<div class="srr-ans">✓ '+cts+'</div>'
+        +(exp?'<div class="srr-exp">'+exp+'</div>':'')
+        +'</div>';
+    });
+    const sec=document.createElement('div');
+    sec.id='session-review-section';sec.className='session-review-section';
+    sec.innerHTML=rHtml;
+    const inner=document.querySelector('#result-screen .result-inner');
+    if(inner)inner.appendChild(sec);
+  }
   window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:false}));
   showScreen('result-screen');
 }
@@ -1220,6 +1255,7 @@ function renderDateCards(items,body,isWrong,map,period){
           ${commentText?'<span style="font-size:.62rem;background:var(--amber-lt);border:1px solid var(--amber-md);color:var(--amber);border-radius:5px;padding:.08rem .42rem;font-weight:600;">✏️</span>':''}
         </div>
         ${commentText?`<div class="comment-snippet">${commentText.length>80?commentText.substring(0,80)+'…':commentText}</div>`:''}
+        ${getExplanation(q.id)?`<div class="list-item-exp">${getExplanation(q.id)}</div>`:''}
       </div>`;
     });
   });
@@ -1283,9 +1319,58 @@ function resetAllData(){
 let tTimer=null;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('show'),2200);}
 
+/* ── RELOAD (called by React on remount) ── */
+window.reloadStudyData=function(){
+  load();updateStats();renderCheckin();renderProfiles();
+};
+
+/* ── BFCACHE RESTORE ── */
+window.addEventListener('pageshow',function(e){
+  if(!e.persisted)return;
+  // Page was restored from browser back/forward cache — refresh all displays.
+  updateStats();renderCheckin();renderProfiles();
+  if(S.qs&&S.qs.length&&Object.keys(S.ans||{}).length<S.qs.length){
+    window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));
+  }
+  if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
+    showScreen('quiz-screen');renderQ();
+  }else if(S.currentScreen==='home-screen'){
+    renderResumeBtn();
+  }else if(S.currentScreen){
+    window.restoreCurrentScreen&&window.restoreCurrentScreen();
+  }
+});
+
+/* ── TAB VISIBILITY RESTORE ── */
+// When the user returns to this tab, verify the active screen matches S.currentScreen.
+// This is the primary defence against any scenario (auth token refresh causing a React
+// re-render, BFCache quirks, etc.) that might leave the DOM screen state out of sync.
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState!=='visible')return;
+  var activeEl=document.querySelector('.screen.active');
+  // If the DOM already shows the right screen, nothing to do.
+  if(!activeEl||activeEl.id===S.currentScreen)return;
+  // Screen mismatch — re-apply the saved state without disturbing the scroll position.
+  if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
+    showScreen('quiz-screen');renderQ();
+  }else if(S.currentScreen==='progress-screen'){
+    showProgress();
+  }else if(S.currentScreen==='review-screen'){
+    showReview();
+  }else if(S.currentScreen==='bookmarks-screen'){
+    showBookmarks();
+  }else if(S.currentScreen==='check-screen'){
+    showCheck();
+  }else{
+    goHome();
+  }
+});
+
 /* ── INIT ── */
 load();updateStats();renderCheckin();
 startTimerLoop();
+var _initHasQuiz=S.qs&&S.qs.length&&Object.keys(S.ans||{}).length<S.qs.length;
+if(_initHasQuiz)window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));
 if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
   showScreen('quiz-screen');renderQ();
 }else if(S.currentScreen==='progress-screen'){
@@ -1297,16 +1382,21 @@ if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
 }else if(S.currentScreen==='check-screen'){
   showCheck();
 }else{
+  renderResumeBtn();
   window.dispatchEvent(new CustomEvent('studycouch:screen-change',{detail:'home-screen'}));
 }
+if(_initHasQuiz&&S.currentScreen!=='quiz-screen')showResumePopup();
 hydrateFromCloud();
 
 window.restoreCurrentScreen=function(){
+  var _inProg=S.qs&&S.qs.length&&Object.keys(S.ans||{}).length<S.qs.length;
+  if(_inProg)window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));
   if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){showScreen('quiz-screen');renderQ();}
   else if(S.currentScreen==='progress-screen'){showProgress();}
   else if(S.currentScreen==='review-screen'){showReview();}
   else if(S.currentScreen==='bookmarks-screen'){showBookmarks();}
   else if(S.currentScreen==='check-screen'){showCheck();}
   else{showScreen('home-screen');updateStats();renderCheckin();renderProfiles();renderResumeBtn();}
+  if(_inProg&&S.currentScreen!=='quiz-screen')showResumePopup();
 };
 

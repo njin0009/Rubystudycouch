@@ -48,6 +48,7 @@ declare global {
     showCheck?: () => void;
     goQuiz?: () => void;
     restoreCurrentScreen?: () => void;
+    reloadStudyData?: () => void;
   }
 }
 

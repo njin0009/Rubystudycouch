@@ -486,3 +486,19 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;min-
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:100px;}
+
+/* ── ANSWER EXPLANATIONS ── */
+.fb-explanation{margin-top:.55rem;font-size:.81rem;line-height:1.55;color:#444;
+  border-left:3px solid var(--teal);padding-left:.7rem;}
+.session-review-section{margin-top:1.5rem;padding:0 .25rem;text-align:left;}
+.srr-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--ink3);margin-bottom:.7rem;}
+.srr-item{border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:.65rem;}
+.srr-num{font-size:.68rem;background:var(--surface2);border-radius:5px;padding:.1rem .4rem;
+  margin-right:.4rem;color:var(--ink3);font-weight:700;}
+.srr-q{font-size:.82rem;font-weight:600;color:var(--ink);margin-bottom:.35rem;line-height:1.4;}
+.srr-ans{font-size:.77rem;color:var(--teal);font-weight:600;margin-bottom:.3rem;}
+.srr-exp{font-size:.77rem;line-height:1.55;color:var(--ink2);
+  border-left:3px solid var(--teal);padding-left:.6rem;margin-top:.35rem;}
+.list-item-exp{font-size:.76rem;line-height:1.5;color:var(--ink2);
+  margin-top:.4rem;padding-top:.4rem;border-top:1px dashed var(--border);}
