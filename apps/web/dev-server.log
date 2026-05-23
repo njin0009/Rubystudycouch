@@ -7,3 +7,14 @@
 
   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
 [2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m9:41:31 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m10:08:06 pm[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: [33mDuplicate key "fontSize" in object literal[33m
+515 |  
+516 |  const Footer = ({ p }: {p: Palette;}) =>
+517 |  ...: 13, color: `${p.ink}99`, fontFamily: "'Caveat', cursive", fontSize: 16 } as React.CSSProperties}>
+    |                                                                 ^
+518 |      <div>© 2026 StudyCouch · made between classes ✺</div>
+519 |      <div style={{ display: 'flex', gap: 20 }}>
+[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mD:/StudyCouch/apps/web/src/features/cover/StudyCouchCoverPage.tsx[39m
