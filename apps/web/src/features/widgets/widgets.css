@@ -1,0 +1,418 @@
+/* ── Widget Shell ──────────────────────────────────────────────────────────── */
+
+.wg-shell {
+  border-radius: 14px;
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-md);
+  background: var(--surface);
+  overflow: hidden;
+  font-family: 'DM Sans', ui-sans-serif, sans-serif;
+}
+
+.wg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px 9px 8px;
+  background: var(--surface2);
+  border-bottom: 1.5px solid var(--border);
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.wg-header:active { cursor: grabbing; }
+
+.wg-header-grip {
+  font-size: 0.75rem;
+  color: var(--ink3);
+  flex-shrink: 0;
+  line-height: 1;
+  letter-spacing: -1px;
+  margin-right: 2px;
+}
+.wg-header-icon { font-size: 0.95rem; flex-shrink: 0; }
+.wg-header-title {
+  flex: 1;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wg-close {
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--ink3);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 5px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.12s, background 0.12s;
+}
+.wg-close:hover { color: var(--ink); background: var(--border); }
+
+.wg-body { /* widget-specific content goes here */ }
+
+/* ── Shared small-widget buttons & chips ─────────────────────────────────── */
+
+/* Pill chip (used in BreakReminder intervals) */
+.wg-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.wg-chip {
+  padding: 3px 9px;
+  border: 1.5px solid var(--border2);
+  border-radius: 999px;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink2);
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.12s;
+  line-height: 1.4;
+}
+.wg-chip:hover { border-color: var(--ink); color: var(--ink); }
+.wg-chip--on   { background: var(--ruby); border-color: var(--ruby); color: #fff; }
+
+/* Action buttons */
+.wg-btn {
+  padding: 6px 14px;
+  border: 1.5px solid var(--border2);
+  border-radius: 7px;
+  background: none;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.wg-btn:hover { border-color: var(--ink); background: var(--surface2); }
+.wg-btn--primary { background: var(--ruby); border-color: var(--ruby); color: #fff; }
+.wg-btn--primary:hover { opacity: 0.88; }
+.wg-btn--teal { background: var(--teal); border-color: var(--teal); color: #fff; }
+.wg-btn--teal:hover { opacity: 0.88; }
+
+/* Ghost link button */
+.wg-btn-link {
+  border: none;
+  background: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--ink3);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.12s;
+}
+.wg-btn-link:hover { color: var(--ruby); }
+
+/* ── Exam Countdown ───────────────────────────────────────────────────────── */
+
+.wg-cd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 16px;
+  gap: 4px;
+}
+.wg-cd-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 3.2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  line-height: 1;
+}
+.wg-cd--warn   .wg-cd-number { color: var(--amber); }
+.wg-cd--urgent .wg-cd-number { color: var(--ruby); }
+.wg-cd-sub  { font-size: 0.72rem; font-weight: 600; color: var(--ink2); text-align: center; }
+.wg-cd-hint { font-size: 0.67rem; color: var(--ink3); text-align: center; margin-top: 8px; line-height: 1.5; }
+
+/* ── Break Reminder ───────────────────────────────────────────────────────── */
+
+.wg-break {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 14px 14px;
+  gap: 10px;
+}
+.wg-break-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.4rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  line-height: 1;
+}
+.wg-break-sub { font-size: 0.68rem; color: var(--ink3); margin-top: -4px; }
+.wg-break-controls { display: flex; gap: 6px; }
+
+/* ── Daily Quote ──────────────────────────────────────────────────────────── */
+
+.wg-quote {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wg-quote-text {
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--ink);
+  font-style: italic;
+  margin: 0;
+}
+.wg-quote-author {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink2);
+  margin: 0;
+}
+.wg-quote-next { align-self: flex-end; font-size: 0.72rem; padding: 4px 10px; }
+
+/* ── Widget Launcher ──────────────────────────────────────────────────────── */
+
+.wl-root {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 126;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: 'DM Sans', ui-sans-serif, sans-serif;
+}
+
+/* Picker popup */
+.wl-picker {
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-md);
+  border-radius: 14px;
+  overflow: hidden;
+  min-width: 226px;
+}
+
+.wl-picker-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: 10px 14px 9px;
+  background: var(--surface2);
+  border-bottom: 1.5px solid var(--border);
+}
+
+.wl-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  transition: background 0.1s;
+}
+.wl-picker-row + .wl-picker-row {
+  border-top: 1px solid var(--border);
+}
+.wl-picker-icon { font-size: 1rem; flex-shrink: 0; }
+.wl-picker-name { flex: 1; font-size: 0.78rem; font-weight: 600; color: var(--ink); }
+
+/* Toggle switch inside picker */
+.wl-toggle {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+.wl-toggle--on { background: var(--ruby); border-color: var(--ruby); }
+.wl-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink3);
+  transition: transform 0.15s, background 0.15s;
+  display: block;
+}
+.wl-toggle--on .wl-toggle-knob {
+  transform: translateX(14px);
+  background: #fff;
+}
+
+.wl-picker-hint {
+  font-size: 0.63rem;
+  color: var(--ink3);
+  padding: 8px 14px;
+  background: var(--surface2);
+  border-top: 1.5px solid var(--border);
+  line-height: 1.4;
+}
+
+/* Launcher pill */
+.wl-pill {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow);
+  border-radius: 999px;
+  padding: 5px 7px;
+}
+
+.wl-pill-divider {
+  width: 1.5px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+  border-radius: 999px;
+}
+
+.wl-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+  position: relative;
+}
+.wl-icon-btn:hover { background: var(--surface2); }
+.wl-icon-btn--active { background: var(--amber-lt); }
+.wl-icon-btn--active::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ruby);
+}
+
+.wl-add-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  background: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--ink2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+  margin-left: 2px;
+}
+.wl-add-btn:hover { border-color: var(--ruby); color: var(--ruby); }
+.wl-add-btn--open { background: var(--ruby); border-color: var(--ruby); color: #fff; }
+
+/* ── Widget Config Panel (Profile) ────────────────────────────────────────── */
+
+.wc-panel { margin-top: 24px; }
+.wc-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin: 0 0 4px;
+}
+.wc-sub {
+  font-size: 0.72rem;
+  color: var(--ink3);
+  margin: 0 0 14px;
+}
+.wc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.wc-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 8px;
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface2);
+  cursor: grab;
+  transition: border-color 0.12s, background 0.12s, opacity 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.wc-card--on { border-color: var(--ruby); background: var(--rose-lt); }
+.wc-card--dragging { opacity: 0.45; cursor: grabbing; }
+.wc-card--over { border-color: var(--amber); background: var(--amber-lt); }
+.wc-card-grip { font-size: 0.75rem; color: var(--ink3); flex-shrink: 0; cursor: grab; }
+.wc-card-icon { font-size: 1.1rem; flex-shrink: 0; }
+.wc-card-info { flex: 1; min-width: 0; }
+.wc-card-title { font-size: 0.72rem; font-weight: 700; color: var(--ink); }
+.wc-card-desc  { font-size: 0.62rem; color: var(--ink3); line-height: 1.3; margin-top: 1px; }
+
+/* Toggle switch (profile config) */
+.wc-toggle {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  padding: 0;
+}
+.wc-toggle--on { background: var(--ruby); border-color: var(--ruby); }
+.wc-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink3);
+  transition: transform 0.15s, background 0.15s;
+}
+.wc-toggle--on .wc-toggle-knob {
+  transform: translateX(14px);
+  background: #fff;
+}

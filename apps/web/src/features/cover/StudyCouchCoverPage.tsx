@@ -27,7 +27,7 @@ const FUNCTIONS = [
 ] as const;
 
 // Implemented features that navigate to real app screens
-const IMPLEMENTED = new Set(['study-planner', 'streaks']);
+const IMPLEMENTED = new Set(['study-planner', 'streaks', 'focus-timer']);
 
 // ── Tiny helpers ──────────────────────────────────────────────────────────────
 

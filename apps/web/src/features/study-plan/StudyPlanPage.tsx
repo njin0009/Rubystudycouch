@@ -1,6 +1,9 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import WidgetConfigPanel from '../widgets/WidgetConfigPanel';
+import { loadWidgetsConfig, saveWidgetsConfig, type WidgetsConfig } from '../widgets/widgetSystem';
 import './studyplan.css';
 import {
   BookOpen,
@@ -93,6 +96,7 @@ type StudyPlanPageProps = {
   snapshot: StudySnapshot;
   onSave: (plan: StudyPlan) => void;
   onClose?: () => void;
+  onWidgetConfig?: (cfg: WidgetsConfig) => void;
 };
 
 type LocalProfile = {
@@ -477,22 +481,58 @@ function buildPlanOptions(
   }));
 }
 
-function getAdjustmentAdvice(planMath: PlanMath) {
+function getAdjustmentAdvice(planMath: PlanMath, selectedOption: PlanOption) {
   const loadRatio = planMath.dailyWorkloadUnits / Math.max(1, planMath.dailyCapacity);
   const requiredDaily = Math.ceil(planMath.remainingQuestions / Math.max(1, planMath.coverageStudyDays));
+  const newDelta = planMath.dailyQuestions - selectedOption.dailyQuestions;
+  const reviewDelta = planMath.dailyReview - selectedOption.dailyReview;
+  const isPersonalized = newDelta !== 0 || reviewDelta !== 0;
+  const direction =
+    newDelta > 0
+      ? `You added ${newDelta} new question${newDelta === 1 ? '' : 's'}/day`
+      : newDelta < 0
+        ? `You reduced new questions by ${Math.abs(newDelta)}/day`
+        : 'You kept the original new-question target';
+  const reviewDirection =
+    reviewDelta > 0
+      ? `and added ${reviewDelta} review question${reviewDelta === 1 ? '' : 's'}/day`
+      : reviewDelta < 0
+        ? `and reduced review by ${Math.abs(reviewDelta)}/day`
+        : 'with the same review target';
+
   if (planMath.dailyQuestions < requiredDaily) {
-    return `This custom target is too low to finish the remaining question bank before your mock/final review blocks. Raise it to at least ${requiredDaily} new questions/day, or move the exam date later.`;
+    return `${direction} compared with ${selectedOption.name}, but this custom target is too low to finish the remaining question bank before mock/final review. Raise it to at least ${requiredDaily} new questions/day, or move the exam date later.`;
   }
   if (loadRatio > 1.25) {
-    return `This is too tight: the plan needs about ${planMath.estimatedDailyMinutes} minutes/day for new questions and review, above your current study-time budget. Consider increasing study time or rescheduling the CLF-C02 exam.`;
+    return `${direction} ${reviewDirection}. That makes the plan too tight at about ${planMath.estimatedDailyMinutes} minutes/day, above your current study-time budget. Reduce the daily load, increase study time, or reschedule the CLF-C02 exam.`;
   }
   if (planMath.dailyReview < Math.ceil(planMath.dailyQuestions * 0.25)) {
-    return 'Review looks light. Add more missed or saved questions if your accuracy is below your target score.';
+    return `${direction} ${reviewDirection}. The personalized plan can work, but review looks light. Add more missed or saved questions if your accuracy is below your target score.`;
   }
   if (loadRatio < 0.65 && planMath.remainingQuestions > 0) {
-    return 'This is comfortable. You can keep the extra buffer for review days or raise the daily target slightly to finish earlier.';
+    return isPersonalized
+      ? `${direction} ${reviewDirection}. This personalized version is comfortable, so you can keep the extra buffer for repair days or raise the daily target slightly to finish earlier.`
+      : 'This is comfortable. You can keep the extra buffer for review days or raise the daily target slightly to finish earlier.';
   }
-  return 'This adjustment is balanced for your current inputs: it leaves room for new questions, review, and mock practice.';
+  return isPersonalized
+    ? `${direction} ${reviewDirection}. This personalized version stays balanced for your current inputs and still leaves room for mock practice.`
+    : 'This selected plan is balanced for your current inputs: it leaves room for new questions, review, and mock practice.';
+}
+
+function getPlanEncouragement(planMath: PlanMath) {
+  if (planMath.todayRemaining === 0) {
+    return 'Nice. Today is already covered, so protect your streak with a light review pass.';
+  }
+  if (planMath.risk === 'High pressure') {
+    return 'This is a demanding day, but it is still concrete: finish one focused block first, then decide whether to continue.';
+  }
+  if (planMath.risk === 'Tight') {
+    return 'Keep it simple today: complete the new-question target first, then use review to repair the highest-friction topics.';
+  }
+  if (planMath.risk === 'Relaxed') {
+    return 'You have useful breathing room. Use it to build confidence, not to rush.';
+  }
+  return 'This is a steady plan. One complete session today keeps the whole journey moving.';
 }
 
 function FieldLabel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
@@ -548,7 +588,15 @@ export default function StudyPlanPage({
   snapshot,
   onSave,
   onClose,
+  onWidgetConfig,
 }: StudyPlanPageProps) {
+  const [widgetConfig, setWidgetConfig] = useState<WidgetsConfig>(loadWidgetsConfig);
+
+  const handleWidgetConfig = (cfg: WidgetsConfig) => {
+    saveWidgetsConfig(cfg);
+    setWidgetConfig(cfg);
+    onWidgetConfig?.(cfg);
+  };
   const [examDate, setExamDate] = useState(initialPlan?.examDate ?? defaultExamDate());
   const [examTime, setExamTime] = useState(initialPlan?.examTime ?? defaultExamTime());
   const [dailyMinutes, setDailyMinutes] = useState(normalizeDailyMinutes(initialPlan?.dailyMinutes ?? 60));
@@ -559,6 +607,9 @@ export default function StudyPlanPage({
   const [customDailyQuestions, setCustomDailyQuestions] = useState<number | undefined>(initialPlan?.customDailyQuestions);
   const [customDailyReview, setCustomDailyReview] = useState<number | undefined>(initialPlan?.customDailyReview);
   const [isConfirmed, setIsConfirmed] = useState(Boolean(initialPlan));
+  const [showingInputForm, setShowingInputForm] = useState(!initialPlan);
+  const [showingPlanPicker, setShowingPlanPicker] = useState(false);
+  const [showingPlanDetails, setShowingPlanDetails] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isEditingSignature, setIsEditingSignature] = useState(false);
   const [signatureDraft, setSignatureDraft] = useState('');
@@ -591,10 +642,12 @@ export default function StudyPlanPage({
       ),
     [customDailyQuestions, customDailyReview, dailyMinutes, daysPerWeek, examDate, examTime, level, selectedPlanType, snapshot, targetScore],
   );
-  const adjustmentAdvice = useMemo(() => getAdjustmentAdvice(planMath), [planMath]);
+  const adjustmentAdvice = useMemo(() => getAdjustmentAdvice(planMath, selectedOption), [planMath, selectedOption]);
+  const planEncouragement = useMemo(() => getPlanEncouragement(planMath), [planMath]);
 
   function resetGeneratedPlan() {
     setIsConfirmed(false);
+    setShowingPlanPicker(false);
     setCustomDailyQuestions(undefined);
     setCustomDailyReview(undefined);
   }
@@ -605,6 +658,8 @@ export default function StudyPlanPage({
     setCustomDailyQuestions(recommended.dailyQuestions);
     setCustomDailyReview(recommended.dailyReview);
     setIsConfirmed(true);
+    setShowingInputForm(false);
+    setShowingPlanPicker(true);
   }
 
   function choosePlan(type: PlanType) {
@@ -612,6 +667,18 @@ export default function StudyPlanPage({
     setSelectedPlanType(option.type);
     setCustomDailyQuestions(option.dailyQuestions);
     setCustomDailyReview(option.dailyReview);
+    setShowingPlanPicker(false);
+    setShowingPlanDetails(false);
+  }
+
+  function changePlan() {
+    setShowingPlanPicker(true);
+    setShowingPlanDetails(false);
+  }
+
+  function startJourney() {
+    handleSave();
+    onClose?.();
   }
 
   function recommendExamDate() {
@@ -706,266 +773,355 @@ export default function StudyPlanPage({
 
         <main className="grid flex-1 gap-4 lg:grid-cols-[1fr_390px]">
           <section className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="mb-5 border-b border-stone-200 pb-4">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Learning habits</p>
-              <h2 className="mt-1 text-xl font-bold text-stone-950">Tell StudyCouch how you study</h2>
-              <p className="mt-1 text-sm text-stone-500">
-                Confirm these details first, then choose one of the generated plans below.
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <FieldLabel icon={<CalendarDays size={14} />}>Exam date</FieldLabel>
-                <input
-                  className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
-                  type="date"
-                  min={todayString()}
-                  value={examDate}
-                  onChange={(event) => {
-                    setExamDate(event.target.value);
-                    resetGeneratedPlan();
-                  }}
-                />
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-teal-700 bg-teal-50 px-3 text-xs font-bold text-teal-800 transition-colors hover:bg-teal-100"
-                  onClick={recommendExamDate}
+            <AnimatePresence mode="wait">
+              {showingInputForm ? (
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  Suggest an exam date
-                </button>
-                <a
-                  className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-3 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-100"
-                  href={AWS_CLF_C02_EXAM_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open AWS CLF-C02 exam site
-                  <ExternalLink size={13} />
-                </a>
-                {examRecommendation && (
-                  <div className="rounded-md bg-stone-100 px-3 py-2 text-xs font-semibold leading-5 text-stone-600">
-                    Suggested {examRecommendation.date} based on about {examRecommendation.dailyNew} new questions/day,
-                    {examRecommendation.studyDaysNeeded} study days, and your selected plan style.
+                  <div className="mb-5 border-b border-stone-200 pb-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Learning habits</p>
+                    <h2 className="mt-1 text-xl font-bold text-stone-950">Tell StudyCouch how you study</h2>
+                    <p className="mt-1 text-sm text-stone-500">
+                      Confirm these details first, then choose one of the generated plans below.
+                    </p>
                   </div>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <FieldLabel icon={<Clock3 size={14} />}>Exam time</FieldLabel>
-                <input
-                  className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
-                  type="time"
-                  value={examTime}
-                  onChange={(event) => {
-                    setExamTime(event.target.value);
-                    resetGeneratedPlan();
-                  }}
-                />
-                <div className="text-xs font-semibold text-stone-500">Calculated in your local timezone: {userTimeZone()}</div>
-              </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <FieldLabel icon={<CalendarDays size={14} />}>Exam date</FieldLabel>
+                      <input
+                        className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
+                        type="date"
+                        aria-label="Exam date"
+                        min={todayString()}
+                        value={examDate}
+                        onChange={(event) => {
+                          setExamDate(event.target.value);
+                          resetGeneratedPlan();
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-teal-700 bg-teal-50 px-3 text-xs font-bold text-teal-800 transition-colors hover:bg-teal-100"
+                        onClick={recommendExamDate}
+                      >
+                        Suggest an exam date
+                      </button>
+                      <a
+                        className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-3 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-100"
+                        href={AWS_CLF_C02_EXAM_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open AWS CLF-C02 exam site
+                        <ExternalLink size={13} />
+                      </a>
+                      {examRecommendation && (
+                        <div className="rounded-md bg-stone-100 px-3 py-2 text-xs font-semibold leading-5 text-stone-600">
+                          Suggested {examRecommendation.date} based on about {examRecommendation.dailyNew} new questions/day,
+                          {examRecommendation.studyDaysNeeded} study days, and your selected plan style.
+                        </div>
+                      )}
+                    </div>
 
-              <div className="space-y-2">
-                <FieldLabel icon={<Clock3 size={14} />}>Daily study time</FieldLabel>
-                <div className="grid grid-cols-4 gap-2">
-                  {[30, 60, 90, 120, 180, 240, 300].map((minutes) => (
+                    <div className="space-y-2">
+                      <FieldLabel icon={<Clock3 size={14} />}>Exam time</FieldLabel>
+                      <input
+                        className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
+                        type="time"
+                        aria-label="Exam time"
+                        value={examTime}
+                        onChange={(event) => {
+                          setExamTime(event.target.value);
+                          resetGeneratedPlan();
+                        }}
+                      />
+                      <div className="text-xs font-semibold text-stone-500">Calculated in your local timezone: {userTimeZone()}</div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <FieldLabel icon={<Clock3 size={14} />}>Daily study time</FieldLabel>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[30, 60, 90, 120, 180, 240, 300].map((minutes) => (
+                          <button
+                            key={minutes}
+                            type="button"
+                            className={`h-10 rounded-lg border text-sm font-bold transition-colors ${
+                              dailyMinutes === minutes
+                                ? 'border-teal-700 bg-teal-700 text-white'
+                                : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
+                            }`}
+                            onClick={() => {
+                              setDailyMinutes(minutes);
+                              resetGeneratedPlan();
+                            }}
+                          >
+                            {minutes}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
+                          type="number"
+                          aria-label="Daily study time in minutes"
+                          min={0}
+                          max={720}
+                          step={5}
+                          value={dailyMinutes}
+                          onChange={(event) => {
+                            setDailyMinutes(normalizeDailyMinutes(Number(event.target.value)));
+                            resetGeneratedPlan();
+                          }}
+                          onBlur={(event) => {
+                            setDailyMinutes(normalizeDailyMinutes(Number(event.target.value)));
+                          }}
+                        />
+                        <span className="shrink-0 text-xs font-bold uppercase tracking-[0.08em] text-stone-500">minutes</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <FieldLabel icon={<BookOpen size={14} />}>Study days per week</FieldLabel>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[4, 5, 6, 7].map((days) => (
+                          <button
+                            key={days}
+                            type="button"
+                            className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
+                              daysPerWeek === days
+                                ? 'border-teal-700 bg-teal-700 text-white'
+                                : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
+                            }`}
+                            onClick={() => {
+                              setDaysPerWeek(days);
+                              resetGeneratedPlan();
+                            }}
+                          >
+                            {days}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <FieldLabel icon={<Target size={14} />}>Target score</FieldLabel>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[75, 80, 85, 90].map((score) => (
+                          <button
+                            key={score}
+                            type="button"
+                            className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
+                              targetScore === score
+                                ? 'border-teal-700 bg-teal-700 text-white'
+                                : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
+                            }`}
+                            onClick={() => {
+                              setTargetScore(score);
+                              resetGeneratedPlan();
+                            }}
+                          >
+                            {score}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 space-y-2">
+                    <FieldLabel icon={<BookOpen size={14} />}>Preparation mode</FieldLabel>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {[
+                        ['new', 'New learner'],
+                        ['reviewing', 'Reviewing'],
+                        ['cram', 'Final sprint'],
+                      ].map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          className={`h-12 rounded-lg border px-3 text-sm font-bold transition-colors ${
+                            level === value
+                              ? 'border-teal-700 bg-teal-700 text-white'
+                              : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
+                          }`}
+                          onClick={() => {
+                            setLevel(value as StudyLevel);
+                            resetGeneratedPlan();
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                     <button
-                      key={minutes}
                       type="button"
-                      className={`h-10 rounded-lg border text-sm font-bold transition-colors ${
-                        dailyMinutes === minutes
-                          ? 'border-teal-700 bg-teal-700 text-white'
-                          : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
-                      }`}
-                      onClick={() => {
-                        setDailyMinutes(minutes);
-                        resetGeneratedPlan();
-                      }}
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-stone-950 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-stone-800"
+                      onClick={handleConfirmInputs}
                     >
-                      {minutes}
+                      <Check size={17} />
+                      Confirm details
                     </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
-                    type="number"
-                    min={0}
-                    max={720}
-                    step={5}
-                    value={dailyMinutes}
-                    onChange={(event) => {
-                      setDailyMinutes(normalizeDailyMinutes(Number(event.target.value)));
-                      resetGeneratedPlan();
-                    }}
-                    onBlur={(event) => {
-                      setDailyMinutes(normalizeDailyMinutes(Number(event.target.value)));
-                    }}
-                  />
-                  <span className="shrink-0 text-xs font-bold uppercase tracking-[0.08em] text-stone-500">minutes</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <FieldLabel icon={<BookOpen size={14} />}>Study days per week</FieldLabel>
-                <div className="grid grid-cols-4 gap-2">
-                  {[4, 5, 6, 7].map((days) => (
-                    <button
-                      key={days}
-                      type="button"
-                      className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
-                        daysPerWeek === days
-                          ? 'border-teal-700 bg-teal-700 text-white'
-                          : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
-                      }`}
-                      onClick={() => {
-                        setDaysPerWeek(days);
-                        resetGeneratedPlan();
-                      }}
-                    >
-                      {days}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <FieldLabel icon={<Target size={14} />}>Target score</FieldLabel>
-                <div className="grid grid-cols-4 gap-2">
-                  {[75, 80, 85, 90].map((score) => (
-                    <button
-                      key={score}
-                      type="button"
-                      className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
-                        targetScore === score
-                          ? 'border-teal-700 bg-teal-700 text-white'
-                          : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
-                      }`}
-                      onClick={() => {
-                        setTargetScore(score);
-                        resetGeneratedPlan();
-                      }}
-                    >
-                      {score}%
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-2">
-              <FieldLabel icon={<BookOpen size={14} />}>Preparation mode</FieldLabel>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {[
-                  ['new', 'New learner'],
-                  ['reviewing', 'Reviewing'],
-                  ['cram', 'Final sprint'],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`h-12 rounded-lg border px-3 text-sm font-bold transition-colors ${
-                      level === value
-                        ? 'border-teal-700 bg-teal-700 text-white'
-                        : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
-                    }`}
-                    onClick={() => {
-                      setLevel(value as StudyLevel);
-                      resetGeneratedPlan();
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-stone-950 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-stone-800"
-                onClick={handleConfirmInputs}
-              >
-                <Check size={17} />
-                Confirm details
-              </button>
-              <button
-                type="button"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-stone-300"
-                onClick={handleSave}
-                disabled={!isConfirmed}
-              >
-                {saved ? <Check size={17} /> : <Save size={17} />}
-                {saved ? 'Saved' : mode === 'onboarding' ? 'Save selected plan' : 'Save changes'}
-              </button>
-              {onClose && (
-                <button
-                  type="button"
-                  className="inline-flex h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 text-sm font-bold text-stone-700 transition-colors hover:bg-stone-100"
-                  onClick={onClose}
+                    {onClose && (
+                      <button
+                        type="button"
+                        className="inline-flex h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 text-sm font-bold text-stone-700 transition-colors hover:bg-stone-100"
+                        onClick={onClose}
+                      >
+                        Back to practice
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="summary"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  Back to practice
-                </button>
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Learning habits</p>
+                      <h2 className="mt-0.5 text-xl font-bold text-stone-950">Your settings</h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-100"
+                      onClick={() => setShowingInputForm(true)}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="flex items-center justify-between rounded-md bg-stone-100 px-3 py-2.5">
+                      <span className="text-xs font-semibold text-stone-500">Exam date</span>
+                      <strong className="text-sm">{examDate} · {examTime}</strong>
+                    </div>
+                    <div className="flex items-center justify-between rounded-md bg-stone-100 px-3 py-2.5">
+                      <span className="text-xs font-semibold text-stone-500">Daily study</span>
+                      <strong className="text-sm">{dailyMinutes} min</strong>
+                    </div>
+                    <div className="flex items-center justify-between rounded-md bg-stone-100 px-3 py-2.5">
+                      <span className="text-xs font-semibold text-stone-500">Days per week</span>
+                      <strong className="text-sm">{daysPerWeek} days</strong>
+                    </div>
+                    <div className="flex items-center justify-between rounded-md bg-stone-100 px-3 py-2.5">
+                      <span className="text-xs font-semibold text-stone-500">Target score</span>
+                      <strong className="text-sm">{targetScore}%</strong>
+                    </div>
+                    <div className="flex items-center justify-between rounded-md bg-stone-100 px-3 py-2.5 sm:col-span-2">
+                      <span className="text-xs font-semibold text-stone-500">Preparation mode</span>
+                      <strong className="text-sm">
+                        {level === 'new' ? 'New learner' : level === 'reviewing' ? 'Reviewing' : 'Final sprint'}
+                      </strong>
+                    </div>
+                  </div>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
 
             {isConfirmed && (
               <div className="mt-6 border-t border-stone-200 pt-5">
-                <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Generated plans</p>
-                    <h3 className="text-lg font-bold text-stone-950">Choose a plan level</h3>
-                  </div>
-                  <p className="text-sm text-stone-500">You can tune the selected plan after choosing.</p>
-                </div>
-
-                <div className="grid gap-3 xl:grid-cols-2">
-                  {planOptions.map((option) => (
-                    <button
-                      key={option.type}
-                      type="button"
-                      className={`flex min-h-[260px] flex-col rounded-lg border p-4 text-left transition-colors ${
-                        selectedPlanType === option.type
-                          ? 'border-teal-700 bg-teal-50'
-                          : 'border-stone-200 bg-white hover:bg-stone-50'
-                      }`}
-                      onClick={() => choosePlan(option.type)}
+                <AnimatePresence mode="wait">
+                  {showingPlanPicker ? (
+                    <motion.div
+                      key="picker"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      <div>
-                        <div className="flex min-h-14 flex-col items-start gap-2">
-                          <div className="text-base font-bold leading-snug text-stone-950">{option.name}</div>
-                          {option.isRecommended && (
-                            <span className="rounded-md bg-teal-700 px-2 py-1 text-[11px] font-bold text-white">
-                              Recommended
-                            </span>
-                          )}
+                      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Generated plans</p>
+                          <h3 className="text-lg font-bold text-stone-950">Choose a plan level</h3>
                         </div>
-                        <div className="mt-3 text-sm leading-6 text-stone-500">{option.bestFor}</div>
+                        <p className="text-sm text-stone-500">Tap a plan to select it.</p>
                       </div>
-                      <div className="mt-auto pt-4">
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="min-w-0 rounded-md bg-white/80 p-2">
-                            <div className="text-lg font-bold">{option.dailyQuestions}</div>
-                            <div className="truncate text-[10px] font-semibold uppercase text-stone-500">New</div>
-                          </div>
-                          <div className="min-w-0 rounded-md bg-white/80 p-2">
-                            <div className="text-lg font-bold">{option.dailyReview}</div>
-                            <div className="truncate text-[10px] font-semibold uppercase text-stone-500">Review</div>
-                          </div>
-                        <div className="min-w-0 rounded-md bg-white/80 p-2">
-                          <div className="text-lg font-bold">{option.finishBufferDays}</div>
-                          <div className="truncate text-[10px] font-semibold uppercase text-stone-500">Review</div>
-                        </div>
-                        </div>
-                        {option.isRecommended && (
-                          <div className="mt-2 rounded-md bg-teal-100 px-2 py-1.5 text-xs font-semibold leading-5 text-teal-900">
-                            {option.recommendationReason}
-                          </div>
-                        )}
+
+                      <div className="grid gap-3 xl:grid-cols-2">
+                        {planOptions.map((option) => (
+                          <button
+                            key={option.type}
+                            type="button"
+                            className={`flex min-h-[260px] flex-col rounded-lg border p-4 text-left transition-colors ${
+                              selectedPlanType === option.type
+                                ? 'border-teal-700 bg-teal-50'
+                                : 'border-stone-200 bg-white hover:bg-stone-50'
+                            }`}
+                            onClick={() => choosePlan(option.type)}
+                          >
+                            <div>
+                              <div className="flex min-h-14 flex-col items-start gap-2">
+                                <div className="text-base font-bold leading-snug text-stone-950">{option.name}</div>
+                                {option.isRecommended && (
+                                  <span className="rounded-md bg-teal-700 px-2 py-1 text-[11px] font-bold text-white">
+                                    Recommended
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-3 text-sm leading-6 text-stone-500">{option.bestFor}</div>
+                            </div>
+                            <div className="mt-auto pt-4">
+                              <div className="grid grid-cols-3 gap-2 text-center">
+                                <div className="min-w-0 rounded-md bg-white/80 p-2">
+                                  <div className="text-lg font-bold">{option.dailyQuestions}</div>
+                                  <div className="truncate text-[10px] font-semibold uppercase text-stone-500">New</div>
+                                </div>
+                                <div className="min-w-0 rounded-md bg-white/80 p-2">
+                                  <div className="text-lg font-bold">{option.dailyReview}</div>
+                                  <div className="truncate text-[10px] font-semibold uppercase text-stone-500">Review</div>
+                                </div>
+                                <div className="min-w-0 rounded-md bg-white/80 p-2">
+                                  <div className="text-lg font-bold">{option.mockExams}</div>
+                                  <div className="truncate text-[10px] font-semibold uppercase text-stone-500">Mocks</div>
+                                </div>
+                              </div>
+                              {option.isRecommended && (
+                                <div className="mt-2 rounded-md bg-teal-100 px-2 py-1.5 text-xs font-semibold leading-5 text-teal-900">
+                                  {option.recommendationReason}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        ))}
                       </div>
-                    </button>
-                  ))}
-                </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="selected"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Selected plan</p>
+                          <h3 className="text-lg font-bold text-stone-950">{selectedOption.name}</h3>
+                        </div>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-100"
+                          onClick={changePlan}
+                        >
+                          Change plan
+                        </button>
+                      </div>
+                      <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm leading-6 text-stone-600">
+                        {selectedOption.bestFor}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
                   <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -983,6 +1139,7 @@ export default function StudyPlanPage({
                       <input
                         className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
                         type="number"
+                        aria-label="New questions per day"
                         min={0}
                         value={customDailyQuestions ?? planMath.dailyQuestions}
                         onChange={(event) => setCustomDailyQuestions(Math.max(1, normalizeNonNegativeInteger(Number(event.target.value))))}
@@ -993,6 +1150,7 @@ export default function StudyPlanPage({
                       <input
                         className="h-11 w-full rounded-lg border border-stone-300 bg-white px-3 text-sm font-semibold outline-none ring-teal-700 transition focus:ring-2"
                         type="number"
+                        aria-label="Review questions per day"
                         min={0}
                         value={customDailyReview ?? planMath.dailyReview}
                         onChange={(event) => setCustomDailyReview(normalizeNonNegativeInteger(Number(event.target.value)))}
@@ -1019,6 +1177,158 @@ export default function StudyPlanPage({
                       </a>
                     </div>
                   )}
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      className={`h-11 rounded-lg border text-sm font-bold transition-colors ${
+                        showingPlanDetails
+                          ? 'border-teal-700 bg-teal-700 text-white'
+                          : 'border-stone-300 bg-white text-stone-700 hover:bg-stone-100'
+                      }`}
+                      onClick={() => setShowingPlanDetails(d => !d)}
+                    >
+                      Plan Details
+                    </button>
+                    <button
+                      type="button"
+                      className="h-11 rounded-lg bg-stone-950 text-sm font-bold text-white transition-colors hover:bg-stone-800"
+                      onClick={startJourney}
+                    >
+                      Start Journey →
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {showingPlanDetails && (
+                      <motion.section
+                        key="plan-details"
+                        className="mt-4 rounded-lg border border-stone-200 bg-white p-4 shadow-sm sm:p-5"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Today's journey</p>
+                            <h2 className="text-xl font-bold text-stone-950">{selectedOption.name}</h2>
+                            <p className="mt-1 max-w-2xl text-sm text-stone-500">What to do today, how far you are from the target, and the next best move.</p>
+                          </div>
+                          <span className="w-fit rounded-md bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-800">{planMath.risk}</span>
+                        </div>
+
+                        {planMath.rescheduleRecommended && (
+                          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm font-semibold leading-6 text-amber-950">
+                            <div>
+                              This CLF-C02 plan is likely too compressed for your current inputs. Based on your study time and study
+                              days, StudyCouch estimates about {planMath.estimatedDailyMinutes} minutes/day. Consider moving the exam
+                              date later, then regenerate the plan.
+                            </div>
+                            <a
+                              className="mt-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-amber-900 underline-offset-4 hover:underline"
+                              href={AWS_CLF_C02_RESCHEDULE_URL}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              AWS reschedule guidance
+                              <ExternalLink size={13} />
+                            </a>
+                          </div>
+                        )}
+
+                        <div className="grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                          <div className="rounded-lg bg-stone-950 p-4 text-white">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <div className="text-xs font-bold uppercase tracking-[0.1em] text-teal-200">Today</div>
+                                <div className="mt-1 text-3xl font-bold">{planMath.todayRemaining}</div>
+                                <div className="text-sm font-semibold text-stone-300">new questions left</div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm sm:w-56">
+                                <div className="rounded-md bg-white/15 p-2">
+                                  <div className="text-lg font-bold">{planMath.dailyReview}</div>
+                                  <div className="text-xs text-stone-300">review today</div>
+                                </div>
+                                <div className="rounded-md bg-white/15 p-2">
+                                  <div className="text-lg font-bold">{planMath.estimatedDailyMinutes}m</div>
+                                  <div className="text-xs text-stone-300">est. time</div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
+                              <div className="h-full rounded-full bg-teal-300" style={{ width: `${planMath.todayPercent}%` }} />
+                            </div>
+                            <div className="mt-3 flex items-center justify-between gap-3 text-xs font-semibold text-stone-300">
+                              <span>{planMath.todayAnswered}/{planMath.dailyQuestions} done</span>
+                              <span>{planMath.todayPercent}% complete</span>
+                            </div>
+                            <div className="mt-4 rounded-md bg-white/10 p-3 text-sm font-semibold leading-6 text-stone-100">
+                              {planEncouragement}
+                            </div>
+                          </div>
+
+                          <div className="grid gap-2">
+                            <div className="rounded-lg border border-teal-700 bg-teal-50 p-3">
+                              <div className="text-xs font-bold uppercase tracking-[0.08em] text-teal-700">Distance to target</div>
+                              <div className="mt-1 text-2xl font-bold text-stone-950">{planMath.remainingQuestions}</div>
+                              <div className="text-sm font-semibold text-stone-600">questions left from {TOTAL_QUESTIONS}</div>
+                            </div>
+                            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+                              <div className="text-xs font-bold uppercase tracking-[0.08em] text-amber-900">Time runway</div>
+                              <div className="mt-1 text-2xl font-bold text-stone-950">{planMath.effectiveStudyDays}</div>
+                              <div className="text-sm font-semibold text-stone-600">study days before exam</div>
+                            </div>
+                            <div className="rounded-lg border border-stone-300 bg-white p-3">
+                              <div className="text-xs font-bold uppercase tracking-[0.08em] text-stone-500">Next best move</div>
+                              <div className="mt-1 text-sm font-bold leading-6 text-stone-950">
+                                Do one {planMath.sessionSize}-question focus block, then review mistakes before adding more.
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <div className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-stone-500">Journey rhythm</div>
+                          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                            {planMath.planRows.map((row, index) => {
+                              const colors = [
+                                'border-teal-700 bg-teal-50 text-teal-800',
+                                'border-amber-300 bg-amber-50 text-amber-900',
+                                'border-stone-300 bg-white text-stone-700',
+                                'border-teal-700 bg-stone-950 text-white',
+                              ];
+                              return (
+                                <div key={row.label} className={`rounded-lg border p-3 ${colors[index]}`}>
+                                  <div className="text-[11px] font-bold uppercase tracking-[0.08em] opacity-70">Step {index + 1}</div>
+                                  <div className="mt-1 text-sm font-bold leading-5">{row.label}</div>
+                                  <div className="mt-2 text-lg font-bold">{row.workload}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <details className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-3">
+                          <summary className="cursor-pointer text-sm font-bold text-stone-950">Advanced plan diagnostics</summary>
+                          <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                            {[
+                              ['Exam countdown', `${planMath.planDays} days / ${planMath.hoursUntilExam} hours`],
+                              ['Weekly load', planMath.weeklyQuestions],
+                              ['Daily capacity', planMath.dailyCapacity],
+                              ['Mistake review/day', planMath.dailyWrongReview],
+                              ['Saved review/day', planMath.dailySavedReview],
+                              ['Current phase', planMath.phase],
+                            ].map(([label, value]) => (
+                              <div key={label} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2">
+                                <span className="text-stone-500">{label}</span>
+                                <strong className="text-right">{value}</strong>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      </motion.section>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             )}
@@ -1040,6 +1350,7 @@ export default function StudyPlanPage({
                     <input
                       className="sr-only"
                       type="file"
+                      aria-label="Upload avatar photo"
                       accept="image/*"
                       onChange={(event) => handleAvatarUpload(event.target.files?.[0])}
                     />
@@ -1174,152 +1485,15 @@ export default function StudyPlanPage({
                 </div>
               )}
             </section>
+
+            {mode === 'profile' && (
+              <section className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
+                <WidgetConfigPanel config={widgetConfig} onConfigChange={handleWidgetConfig} />
+              </section>
+            )}
           </aside>
         </main>
 
-        {isConfirmed && (
-          <section className="mt-4 rounded-lg border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700">Selected plan details</p>
-                <h2 className="text-xl font-bold text-stone-950">{selectedOption.name}</h2>
-                <p className="mt-1 max-w-2xl text-sm text-stone-500">{selectedOption.bestFor}</p>
-              </div>
-              <span className="w-fit rounded-md bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-800">{planMath.risk}</span>
-            </div>
-
-            {planMath.rescheduleRecommended && (
-              <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm font-semibold leading-6 text-amber-950">
-                <div>
-                  This CLF-C02 plan is likely too compressed for your current inputs. Based on your study time and study
-                  days, StudyCouch estimates about {planMath.estimatedDailyMinutes} minutes/day. Consider moving the exam
-                  date later, then regenerate the plan.
-                </div>
-                <a
-                  className="mt-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-amber-900 underline-offset-4 hover:underline"
-                  href={AWS_CLF_C02_RESCHEDULE_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  AWS reschedule guidance
-                  <ExternalLink size={13} />
-                </a>
-              </div>
-            )}
-
-            <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
-              <div className="rounded-lg bg-stone-950 p-4 text-white">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-bold uppercase tracking-[0.1em] text-teal-200">Today progress</div>
-                    <div className="text-2xl font-bold">{planMath.todayAnswered} / {planMath.dailyQuestions}</div>
-                  </div>
-                  <div className="text-right text-sm text-stone-300">
-                    <div>{planMath.todayRemaining} left today</div>
-                    <div>{planMath.todayPercent}% done</div>
-                  </div>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/15">
-                  <div className="h-full rounded-full bg-teal-300" style={{ width: `${planMath.todayPercent}%` }} />
-                </div>
-                <div className="mt-3 text-sm text-stone-300">
-                  Today: {planMath.todayAnswered} / {planMath.dailyQuestions} new questions, plus {planMath.dailyReview}{' '}
-                  review questions. Exam starts in about {planMath.hoursUntilExam} hours.
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.dailyQuestions}</div>
-                  <div className="text-xs font-semibold text-stone-500">New questions/day</div>
-                </div>
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.dailyReview}</div>
-                  <div className="text-xs font-semibold text-stone-500">Review/day</div>
-                </div>
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.effectiveStudyDays}</div>
-                  <div className="text-xs font-semibold text-stone-500">Available study days</div>
-                </div>
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.mockExams}</div>
-                  <div className="text-xs font-semibold text-stone-500">Mock exams</div>
-                </div>
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.coverageStudyDays}</div>
-                  <div className="text-xs font-semibold text-stone-500">Coverage days</div>
-                </div>
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.finalReviewDays}</div>
-                  <div className="text-xs font-semibold text-stone-500">Final review</div>
-                </div>
-                <div className="rounded-md bg-stone-100 p-3">
-                  <div className="text-2xl font-bold">{planMath.reviewBlockDays}</div>
-                  <div className="text-xs font-semibold text-stone-500">Repair days</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="space-y-3 rounded-lg border border-stone-200 p-3">
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Question bank</span>
-                  <strong>{TOTAL_QUESTIONS}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Remaining</span>
-                  <strong>{planMath.remainingQuestions}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Weekly load</span>
-                  <strong>{planMath.weeklyQuestions}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Exam countdown</span>
-                  <strong>{planMath.planDays} days / {planMath.hoursUntilExam} hours</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Available study days</span>
-                  <strong>{planMath.effectiveStudyDays}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Daily capacity</span>
-                  <strong>{planMath.dailyCapacity}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Estimated daily time</span>
-                  <strong>{planMath.estimatedDailyMinutes} min</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Mistake review/day</span>
-                  <strong>{planMath.dailyWrongReview}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Saved review/day</span>
-                  <strong>{planMath.dailySavedReview}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Suggested session</span>
-                  <strong>{planMath.sessionSize}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-stone-500">Current phase</span>
-                  <strong>{planMath.phase}</strong>
-                </div>
-              </div>
-
-              <div className="grid gap-2 sm:grid-cols-3">
-                {planMath.planRows.map((row) => (
-                  <div key={row.label} className="rounded-lg border border-stone-200 p-3">
-                    <div className="text-sm font-bold">{row.label}</div>
-                    <div className="mt-1 text-xs font-bold text-teal-700">{row.workload}</div>
-                    <div className="mt-2 text-sm text-stone-500">{row.focus}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

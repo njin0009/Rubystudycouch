@@ -12,6 +12,13 @@ import StudyPlanPage, {
   type StudyPlan,
 } from '@/features/study-plan/StudyPlanPage';
 import ToBeContined from '@/features/todo/ToBeContined';
+import StickyNotesManager from '@/features/focus-timer/StickyNotesManager';
+import TimerSoundsWidget from '@/features/focus-timer/TimerSoundsWidget';
+import TasksWidget from '@/features/focus-timer/TasksWidget';
+import { ExamCountdownWidget, BreakReminderWidget, DailyQuoteWidget } from '@/features/widgets/SmallWidgets';
+import WidgetLauncher from '@/features/widgets/WidgetLauncher';
+import { loadWidgetsConfig, saveWidgetsConfig, type WidgetsConfig } from '@/features/widgets/widgetSystem';
+import '@/features/widgets/widgets.css';
 import { supabase } from '@/lib/supabase';
 import { PALETTES, applyPalette, getSavedPalette, savePalette, type PaletteId } from '@/lib/theme';
 import LegacyStudyCoach from './legacy/LegacyStudyCoach';
@@ -49,6 +56,17 @@ export default function App() {
   const [activeToBeContined, setActiveToBeContined] = useState<string | null>(null);
   const [paletteId, setPaletteId] = useState<PaletteId>(() => getSavedPalette());
   const [studySnapshot, setStudySnapshot] = useState(() => readStudySnapshot());
+  const [widgetConfig, setWidgetConfig] = useState<WidgetsConfig>(() => loadWidgetsConfig());
+
+  const handleWidgetConfig = (cfg: WidgetsConfig) => {
+    saveWidgetsConfig(cfg);
+    setWidgetConfig(cfg);
+  };
+
+  const closeWidget = (id: string) => {
+    handleWidgetConfig({ ...widgetConfig, [id]: { ...widgetConfig[id], open: false } });
+  };
+
   const [navPosition, setNavPosition] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('studycouch_nav_position') ?? '{"x":0,"y":0}') as { x: number; y: number };
@@ -193,6 +211,8 @@ export default function App() {
       openPlan();
     } else if (featureId === 'streaks') {
       window.showProgress?.();
+    } else if (featureId === 'focus-timer') {
+      // Widget is always rendered — nothing extra to open
     } else {
       setActiveToBeContined(featureId);
     }
@@ -290,6 +310,26 @@ export default function App() {
 
             <div className="acct-menu-divider" />
 
+            {/* Theme palette switcher */}
+            <div className="acct-menu-theme">
+              <span className="acct-menu-theme-label">Theme</span>
+              <div className="acct-menu-theme-swatches">
+                {(Object.keys(PALETTES) as PaletteId[]).map(id => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="menuitem"
+                    data-palette={id}
+                    className={`acct-swatch${paletteId === id ? ' acct-swatch--active' : ''}`}
+                    onClick={() => setPaletteAndSave(id)}
+                    title={id.charAt(0).toUpperCase() + id.slice(1)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="acct-menu-divider" />
+
             <button
               type="button"
               className="acct-menu-item acct-menu-item--muted"
@@ -314,6 +354,16 @@ export default function App() {
 
       <LegacyStudyCoach />
 
+      {/* Widget system */}
+      <WidgetLauncher config={widgetConfig} onConfigChange={handleWidgetConfig} />
+      {widgetConfig['timer-sounds']?.open && <TimerSoundsWidget onClose={() => closeWidget('timer-sounds')} />}
+      {widgetConfig['tasks']?.open        && <TasksWidget       onClose={() => closeWidget('tasks')} />}
+      {widgetConfig['exam-cd']?.open      && <ExamCountdownWidget onClose={() => closeWidget('exam-cd')} />}
+      {widgetConfig['break']?.open        && <BreakReminderWidget onClose={() => closeWidget('break')} />}
+      {widgetConfig['quote']?.open        && <DailyQuoteWidget  onClose={() => closeWidget('quote')} />}
+      {/* Sticky notes float independently */}
+      {widgetConfig['timer-sounds']?.enabled && <StickyNotesManager />}
+
       {studyPlan && !isPlanOpen && (
         <StudyPlanMiniCard plan={studyPlan} snapshot={studySnapshot} onOpen={openPlan} />
       )}
@@ -325,6 +375,7 @@ export default function App() {
           snapshot={studySnapshot}
           onSave={handleSavePlan}
           onClose={studyPlan ? () => setIsPlanOpen(false) : undefined}
+          onWidgetConfig={handleWidgetConfig}
         />
       )}
 

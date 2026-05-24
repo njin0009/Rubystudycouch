@@ -1,0 +1,100 @@
+/* ── Sticky Notes ──────────────────────────────────────────────────────────── */
+
+.sn-note {
+  width: 230px;
+  border-radius: 3px 3px 8px 8px;
+  box-shadow: 4px 6px 0 rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.08);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  font-family: 'DM Sans', ui-sans-serif, sans-serif;
+}
+
+/* ── Color variants ─────────────────────────────────────────────────────────── */
+
+.sn-yellow { background: #FEF9C3; }
+.sn-pink   { background: #FCE7F3; }
+.sn-mint   { background: #D1FAE5; }
+.sn-blue   { background: #DBEAFE; }
+
+/* ── Handle (drag zone) ─────────────────────────────────────────────────────── */
+
+.sn-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 9px 6px;
+  cursor: grab;
+  border-radius: 3px 3px 0 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+.sn-handle:active { cursor: grabbing; }
+
+.sn-yellow .sn-handle { background: #FDE047; }
+.sn-pink   .sn-handle { background: #F9A8D4; }
+.sn-mint   .sn-handle { background: #6EE7B7; }
+.sn-blue   .sn-handle { background: #93C5FD; }
+
+/* ── Color dots ─────────────────────────────────────────────────────────────── */
+
+.sn-color-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.sn-color-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.sn-color-dot:hover { transform: scale(1.2); }
+.sn-color-dot--active {
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.45);
+}
+.sn-color-dot--yellow { background: #FEF9C3; }
+.sn-color-dot--pink   { background: #FCE7F3; }
+.sn-color-dot--mint   { background: #D1FAE5; }
+.sn-color-dot--blue   { background: #DBEAFE; }
+
+/* ── Close button ───────────────────────────────────────────────────────────── */
+
+.sn-close {
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  color: rgba(0,0,0,0.4);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.12s, background 0.12s;
+}
+.sn-close:hover { color: rgba(0,0,0,0.85); background: rgba(0,0,0,0.1); }
+
+/* ── Textarea ───────────────────────────────────────────────────────────────── */
+
+.sn-textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', ui-sans-serif, sans-serif;
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: rgba(0,0,0,0.78);
+  padding: 9px 11px 11px;
+  outline: none;
+  box-sizing: border-box;
+  border-radius: 0 0 8px 8px;
+}
+.sn-textarea::placeholder { color: rgba(0,0,0,0.3); }
