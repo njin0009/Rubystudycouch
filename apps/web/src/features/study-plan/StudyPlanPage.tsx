@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import WidgetConfigPanel from '../widgets/WidgetConfigPanel';
 import { loadWidgetsConfig, saveWidgetsConfig, type WidgetsConfig } from '../widgets/widgetSystem';
+import { PALETTES, getSavedPalette } from '@/lib/theme';
 import './studyplan.css';
 import {
   BookOpen,
@@ -50,6 +51,17 @@ type StudySnapshot = {
   savedCount: number;
   accuracy: number | null;
 };
+
+type DomainStat = {
+  id: 'tech' | 'security' | 'concepts' | 'billing';
+  name: string;
+  weight: number;
+  total: number;
+  right: number;
+  wrong: number;
+};
+
+type DayPoint = { day: string; done: number; accuracy: number | null };
 
 type PlanMath = {
   hoursUntilExam: number;
@@ -300,6 +312,37 @@ export function readStudySnapshot(): StudySnapshot {
   }
 }
 
+function readDomainStats(): DomainStat[] {
+  try {
+    const raw = localStorage.getItem('clf_en3:domains');
+    if (raw) return JSON.parse(raw) as DomainStat[];
+  } catch {
+    // fall through to seeded design data
+  }
+  return [
+    { id: 'tech', name: 'Cloud Technology & Services', weight: 0.34, total: 11, right: 3, wrong: 8 },
+    { id: 'security', name: 'Security & Compliance', weight: 0.30, total: 14, right: 4, wrong: 10 },
+    { id: 'billing', name: 'Billing & Pricing', weight: 0.12, total: 6, right: 2, wrong: 4 },
+    { id: 'concepts', name: 'Cloud Concepts', weight: 0.24, total: 9, right: 4, wrong: 5 },
+  ];
+}
+
+function readSevenDayTrend(): DayPoint[] {
+  try {
+    const raw = localStorage.getItem('clf_en3:trend');
+    if (raw) return JSON.parse(raw) as DayPoint[];
+  } catch {
+    // fall through to seeded design data
+  }
+  const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
+  const values = [28, 31, null, 35, 38, 40, 44];
+  return labels.map((day, index) => ({
+    day,
+    done: index === 6 ? 20 : 8 + index * 3,
+    accuracy: values[index],
+  }));
+}
+
 function basePlanInputs(plan: Pick<StudyPlan, 'examDate' | 'examTime' | 'dailyMinutes' | 'daysPerWeek' | 'targetScore' | 'level'>) {
   const now = new Date();
   const exam = localDateTime(plan.examDate, plan.examTime);
@@ -535,6 +578,205 @@ function getPlanEncouragement(planMath: PlanMath) {
   return 'This is a steady plan. One complete session today keeps the whole journey moving.';
 }
 
+const RUBY = {
+  bg: 'var(--sp-bg)',
+  ink: 'var(--sp-ink)',
+  accent: 'var(--sp-accent)',
+  yellow: 'var(--sp-yellow)',
+  green: 'var(--sp-green)',
+  pink: 'var(--sp-pink)',
+  paper: 'var(--sp-paper)',
+};
+
+function textOn(hex: string) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? '#1A150F' : '#FAF6E9';
+}
+
+function formatMinutes(minutes: number) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function formatExamDate(dateValue: string) {
+  const [year, month, day] = dateValue.split('-').map(Number);
+  return new Date(year, (month || 1) - 1, day || 1).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function marker(children: ReactNode) {
+  return (
+    <span className="sp-marker">
+      <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+        <path
+          d="M2 14 C 20 6, 50 22, 70 12 S 96 8, 98 16 L 98 22 C 80 28, 50 14, 30 22 S 4 26, 2 20 Z"
+          fill={RUBY.yellow}
+          opacity="0.55"
+        />
+      </svg>
+      <span>{children}</span>
+    </span>
+  );
+}
+
+function CouchMark() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M4 20 L4 24 L28 24 L28 20 L24 20 L24 16 C24 13 22 11 18 11 L14 11 C10 11 8 13 8 16 L8 20 Z" fill={RUBY.accent} />
+      <path d="M2 24 L30 24" stroke={RUBY.ink} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="9" cy="6" r="1.5" fill={RUBY.ink} />
+      <circle cx="23" cy="6" r="1.5" fill={RUBY.yellow} />
+    </svg>
+  );
+}
+
+function Pill({ label, value, tone = 'ink', big = false }: { label: string; value: string; tone?: 'ink' | 'accent' | 'green'; big?: boolean }) {
+  return (
+    <div className={`sp-pill sp-pill-${tone} ${big ? 'sp-pill-big' : ''}`}>
+      <div>{label}</div>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function Bar({ label, done, total, color, dark = false }: { label: string; done: number; total: number; color: string; dark?: boolean }) {
+  const pct = Math.min(100, Math.round((done / Math.max(1, total)) * 100));
+  return (
+    <div>
+      <div className={`sp-bar-label ${dark ? 'sp-dark-label' : ''}`}>
+        <span>{label}</span>
+        <span>{done}/{total} · {pct}%</span>
+      </div>
+      <div className={dark ? 'sp-progress-track-dark' : 'sp-progress-track'}>
+        <div style={{ width: `${pct}%`, background: color }} />
+      </div>
+    </div>
+  );
+}
+
+function DomainAnalytics({ snapshot, planMath }: { snapshot: StudySnapshot; planMath: PlanMath }) {
+  const domains = readDomainStats()
+    .map((domain) => {
+      const accuracy = domain.total > 0 ? Math.round((domain.right / domain.total) * 100) : null;
+      return {
+        ...domain,
+        accuracy,
+        priority: (accuracy != null ? 100 - accuracy : 50) * (1 + domain.weight),
+      };
+    })
+    .sort((a, b) => b.priority - a.priority);
+  const trend = readSevenDayTrend();
+  const first = trend.find((point) => point.accuracy != null)?.accuracy ?? 0;
+  const last = [...trend].reverse().find((point) => point.accuracy != null)?.accuracy ?? 0;
+
+  return (
+    <section className="sp-section">
+      <div className="sp-section-head">
+        <div>
+          <div className="sp-eyebrow">Analytics</div>
+          <h2>Where you're <em>slipping</em></h2>
+        </div>
+        <p>Weighted by CLF-C02 exam blueprint. Fix the top row first — it's the biggest score lift.</p>
+      </div>
+      <div className="sp-analytics-grid">
+        <div className="sp-data-card">
+          <div className="sp-card-kicker"><span>Domain accuracy</span><span>Done · wrong · weight</span></div>
+          {domains.map((domain, index) => {
+            const acc = domain.accuracy ?? 0;
+            const color = acc < 50 ? RUBY.accent : acc < 70 ? RUBY.yellow : RUBY.green;
+            return (
+              <div className="sp-domain-row" key={domain.id}>
+                <div className="sp-domain-top">
+                  <div>{index === 0 && <span className="sp-focus-chip">Focus</span>}<strong>{domain.name}</strong></div>
+                  <span>{domain.total} · <b>{domain.wrong} wrong</b> · {Math.round(domain.weight * 100)}%</span>
+                </div>
+                <div className="sp-domain-meter">
+                  <div className="sp-domain-track"><div style={{ width: `${acc}%`, background: color }} /><i style={{ left: `${domain.weight * 100}%` }} /></div>
+                  <strong style={{ color }}>{domain.accuracy != null ? `${domain.accuracy}%` : '-'}</strong>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="sp-data-card sp-trend-card">
+          <div className="sp-card-kicker"><span>Last 7 days · accuracy</span><span>{snapshot.accuracy ?? '-'}% overall</span></div>
+          <TrendChart trend={trend} />
+          <div className="sp-micro-grid">
+            <div><strong>{planMath.todayAnswered}</strong><span>answered today</span></div>
+            <div><strong className={last - first >= 0 ? 'sp-green' : ''}>{last - first >= 0 ? '+' : ''}{last - first}pp</strong><span>vs. 7 days ago</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrendChart({ trend }: { trend: DayPoint[] }) {
+  const w = 280;
+  const h = 88;
+  const pad = 6;
+  const xs = trend.map((_, index) => pad + (index / Math.max(1, trend.length - 1)) * (w - pad * 2));
+  const pts = trend.map((point, index) => ({
+    ...point,
+    x: xs[index],
+    y: point.accuracy == null ? null : h - pad - (point.accuracy / 100) * (h - pad * 2),
+  }));
+  let pathD = '';
+  let started = false;
+  pts.forEach((point) => {
+    if (point.y == null) {
+      started = false;
+      return;
+    }
+    pathD += started ? `L ${point.x} ${point.y} ` : `M ${point.x} ${point.y} `;
+    started = true;
+  });
+  const baselineY = h - pad - 0.5 * (h - pad * 2);
+  const last = pts[pts.length - 1];
+  return (
+    <svg viewBox={`0 0 ${w} ${h + 22}`} className="sp-trend">
+      <line x1={pad} x2={w - pad} y1={baselineY} y2={baselineY} stroke={RUBY.ink} strokeOpacity="0.14" strokeDasharray="3 4" />
+      <path d={pathD} fill="none" stroke={RUBY.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((point, index) => point.y == null ? null : (
+        <circle key={point.day} cx={point.x} cy={point.y} r={index === pts.length - 1 ? 4 : 3} fill={index === pts.length - 1 ? RUBY.accent : RUBY.paper} stroke={RUBY.accent} strokeWidth="1.5" />
+      ))}
+      {pts.map((point, index) => (
+        <text key={`${point.day}-label`} x={point.x} y={h + 14} textAnchor="middle" fontSize="10" fill={index === pts.length - 1 ? RUBY.accent : RUBY.ink} opacity={index === pts.length - 1 ? 1 : 0.7} fontWeight={index === pts.length - 1 ? 700 : 400}>{point.day}</text>
+      ))}
+      {last?.y != null && <text x={last.x} y={last.y - 8} textAnchor="middle" fontSize="11" fontWeight="600" fill={RUBY.accent}>{last.accuracy}%</text>}
+    </svg>
+  );
+}
+
+function PhaseTimeline({ planMath }: { planMath: PlanMath }) {
+  const phases = [
+    { name: 'Coverage', days: planMath.coverageStudyDays, color: RUBY.accent, fg: RUBY.bg },
+    { name: 'Review block', days: planMath.reviewBlockDays, color: RUBY.yellow, fg: RUBY.ink },
+    { name: 'Mock tests', days: planMath.mockReviewDays, color: RUBY.green, fg: RUBY.bg },
+    { name: 'Final review', days: planMath.finalReviewDays, color: RUBY.pink, fg: RUBY.ink },
+  ].filter((phase) => phase.days > 0);
+  const total = phases.reduce((sum, phase) => sum + phase.days, 0) || 1;
+  return (
+    <div>
+      <div className="sp-card-kicker"><span>Plan phases · {planMath.effectiveStudyDays} study days total</span><span>T-{planMath.calendarDays} days · {planMath.phase}</span></div>
+      <div className="sp-phase-bar">
+        {phases.map((phase) => (
+          <div key={phase.name} style={{ flex: phase.days / total, background: phase.color, color: phase.fg }}>
+            {phase.name} · {phase.days}d
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FieldLabel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-stone-500">
@@ -581,7 +823,324 @@ export function StudyPlanMiniCard({
   );
 }
 
+function EditGoalModal({
+  plan,
+  snapshot,
+  onClose,
+  onSave,
+}: {
+  plan: StudyPlan;
+  snapshot: StudySnapshot;
+  onClose: () => void;
+  onSave: (plan: StudyPlan) => void;
+}) {
+  const [draft, setDraft] = useState<StudyPlan>(plan);
+  const preview = useMemo(() => calculatePlan(draft, snapshot), [draft, snapshot]);
+  const update = (patch: Partial<StudyPlan>) => setDraft((prev) => ({ ...prev, ...patch, customDailyQuestions: undefined, customDailyReview: undefined }));
+  const segment = <T extends string | number>(value: T, label: string, current: T, onClick: () => void) => (
+    <button type="button" className={value === current ? 'active' : ''} onClick={onClick}>{label}</button>
+  );
+
+  return (
+    <div className="sp-modal" onClick={onClose}>
+      <div className="sp-modal-card" onClick={(event) => event.stopPropagation()}>
+        <header>
+          <div><span>tell us how you study</span><h2>Edit your goal</h2></div>
+          <button type="button" onClick={onClose}>×</button>
+        </header>
+        <div className="sp-modal-grid">
+          <label>Exam date<input type="date" min={todayString()} value={draft.examDate} onChange={(event) => update({ examDate: event.target.value })} /></label>
+          <label>Exam time<input type="time" value={draft.examTime} onChange={(event) => update({ examTime: event.target.value })} /></label>
+          <div><span>Target score</span><div className="sp-segments">{[75, 80, 85, 90].map((score) => segment(score, `${score}%`, draft.targetScore, () => update({ targetScore: score })))}</div></div>
+          <div><span>Days per week</span><div className="sp-segments">{[4, 5, 6, 7].map((days) => segment(days, String(days), draft.daysPerWeek, () => update({ daysPerWeek: days })))}</div></div>
+          <div className="wide"><span>Daily study time</span><div className="sp-segments">{[30, 60, 120, 180, 240, 300].map((minutes) => segment(minutes, `${minutes}m`, draft.dailyMinutes, () => update({ dailyMinutes: minutes })))}</div></div>
+          <div className="wide"><span>Preparation mode</span><div className="sp-segments">
+            {segment('new', 'New learner', draft.level, () => update({ level: 'new' }))}
+            {segment('reviewing', 'Reviewing', draft.level, () => update({ level: 'reviewing' }))}
+            {segment('cram', 'Final sprint', draft.level, () => update({ level: 'cram' }))}
+          </div></div>
+        </div>
+        <div className="sp-preview"><b>with these settings →</b><br />{preview.dailyQuestions} new + {preview.dailyReview} review per day · ~{formatMinutes(preview.estimatedDailyMinutes)}/day · {preview.risk.toLowerCase()}</div>
+        <footer><button type="button" onClick={onClose}>Cancel</button><button type="button" onClick={() => onSave(draft)}>Save goal →</button></footer>
+      </div>
+    </div>
+  );
+}
+
 export default function StudyPlanPage({
+  session,
+  initialPlan,
+  mode,
+  snapshot,
+  onSave,
+  onClose,
+}: StudyPlanPageProps) {
+  const [examDate, setExamDate] = useState(initialPlan?.examDate ?? defaultExamDate());
+  const [examTime, setExamTime] = useState(initialPlan?.examTime ?? defaultExamTime());
+  const [dailyMinutes, setDailyMinutes] = useState(normalizeDailyMinutes(initialPlan?.dailyMinutes ?? 60));
+  const [daysPerWeek, setDaysPerWeek] = useState(initialPlan?.daysPerWeek ?? 6);
+  const [targetScore, setTargetScore] = useState(initialPlan?.targetScore ?? 85);
+  const [level, setLevel] = useState<StudyLevel>(initialPlan?.level ?? 'reviewing');
+  const [selectedPlanType, setSelectedPlanType] = useState<PlanType>(initialPlan?.planType ?? 'balanced');
+  const [customDailyQuestions, setCustomDailyQuestions] = useState<number | undefined>(initialPlan?.customDailyQuestions);
+  const [customDailyReview, setCustomDailyReview] = useState<number | undefined>(initialPlan?.customDailyReview);
+  const [picker, setPicker] = useState(!initialPlan);
+  const [editingGoal, setEditingGoal] = useState(!initialPlan);
+  const [toast, setToast] = useState('');
+  const [localProfile, setLocalProfile] = useState(() => readLocalProfile(session.user.id));
+  const planSectionRef = useRef<HTMLElement | null>(null);
+
+  const displayName = session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'Student';
+  const avatarSrc = localProfile.avatarDataUrl || session.user.user_metadata?.avatar_url || undefined;
+  const planOptions = useMemo(
+    () => buildPlanOptions({ examDate, examTime, dailyMinutes, daysPerWeek, targetScore, level }, snapshot),
+    [dailyMinutes, daysPerWeek, examDate, examTime, level, snapshot, targetScore],
+  );
+  const selectedOption = planOptions.find((option) => option.type === selectedPlanType) ?? planOptions[0];
+  const planMath = useMemo(
+    () => calculatePlan({ examDate, examTime, dailyMinutes, daysPerWeek, targetScore, level, planType: selectedPlanType, customDailyQuestions, customDailyReview }, snapshot),
+    [customDailyQuestions, customDailyReview, dailyMinutes, daysPerWeek, examDate, examTime, level, selectedPlanType, snapshot, targetScore],
+  );
+  const adjustmentAdvice = useMemo(() => getAdjustmentAdvice(planMath, selectedOption), [planMath, selectedOption]);
+  const planEncouragement = useMemo(() => getPlanEncouragement(planMath), [planMath]);
+  const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const coveragePct = Math.round((snapshot.mastered / TOTAL_QUESTIONS) * 100);
+  const palette = PALETTES[getSavedPalette()];
+  const themeStyle = {
+    '--sp-bg': palette.bg,
+    '--sp-ink': palette.ink,
+    '--sp-accent': palette.accent,
+    '--sp-yellow': palette.yellow,
+    '--sp-green': palette.green,
+    '--sp-pink': palette.pink,
+    '--sp-paper': palette.paper,
+  } as CSSProperties;
+  const currentPlan: StudyPlan = {
+    version: PLAN_VERSION,
+    examDate,
+    examTime,
+    dailyMinutes,
+    daysPerWeek,
+    targetScore,
+    level,
+    planType: selectedPlanType,
+    customDailyQuestions,
+    customDailyReview,
+    createdAt: initialPlan?.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  function persistPlan(overrides: Partial<StudyPlan> = {}) {
+    const now = new Date().toISOString();
+    onSave({
+      ...currentPlan,
+      ...overrides,
+      createdAt: initialPlan?.createdAt ?? currentPlan.createdAt,
+      updatedAt: now,
+    });
+  }
+
+  function choosePlan(type: PlanType) {
+    const option = planOptions.find((item) => item.type === type) ?? planOptions[0];
+    setSelectedPlanType(option.type);
+    setCustomDailyQuestions(option.dailyQuestions);
+    setCustomDailyReview(option.dailyReview);
+    setPicker(false);
+    setToast(`Switched to ${option.name}`);
+  }
+
+  function handleAvatarUpload(file: File | undefined) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextProfile = { ...localProfile, avatarDataUrl: String(reader.result) };
+      setLocalProfile(nextProfile);
+      saveLocalProfile(session.user.id, nextProfile);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleGoalSave(draft: StudyPlan) {
+    const nextPlan = {
+      ...draft,
+      customDailyQuestions: undefined,
+      customDailyReview: undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    setExamDate(nextPlan.examDate);
+    setExamTime(nextPlan.examTime);
+    setDailyMinutes(nextPlan.dailyMinutes);
+    setDaysPerWeek(nextPlan.daysPerWeek);
+    setTargetScore(nextPlan.targetScore);
+    setLevel(nextPlan.level);
+    setCustomDailyQuestions(undefined);
+    setCustomDailyReview(undefined);
+    saveStudyPlan(session.user.id, nextPlan);
+    setEditingGoal(false);
+    setPicker(true);
+    setToast('Goal saved. Choose the plan that fits best.');
+    window.requestAnimationFrame(() => {
+      planSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-[220] overflow-y-auto sp-redesign" style={themeStyle}>
+      <div className="sp-shell">
+        <header className="sp-topbar">
+          <div className="sp-brand"><CouchMark /><span>StudyCouch</span><i /><b>{mode === 'onboarding' ? 'First study plan' : 'Profile & Plan'}</b></div>
+          <button type="button" className="sp-close" onClick={onClose}>×</button>
+        </header>
+
+        <div className="sp-grid">
+          <main>
+            <section className="sp-hero">
+              <div>
+                <div className="sp-script">studying for</div>
+                <h1>{marker('CLF-C02')}<em>· AWS Cloud Practitioner</em></h1>
+                <div className="sp-pill-row">
+                  <button type="button" onClick={() => setEditingGoal(true)}><Pill label="exam" value={formatExamDate(examDate)} /></button>
+                  <button type="button" onClick={() => setEditingGoal(true)}><Pill label="t-minus" value={`${planMath.calendarDays} days`} tone="accent" big /></button>
+                  <button type="button" onClick={() => setEditingGoal(true)}><Pill label="target" value={`${targetScore}%`} tone="green" /></button>
+                  <button type="button" className="sp-edit-goal" onClick={() => setEditingGoal(true)}>✎ Edit goal</button>
+                </div>
+              </div>
+            </section>
+
+            <section className="sp-today">
+              <div className="sp-today-card">
+                <div className="sp-today-head"><span>today, {todayName}</span><b>Phase: {planMath.phase} · <em>{planMath.risk}</em></b></div>
+                <h2><em>{planMath.todayRemaining} new</em>, <i>{planMath.dailyReview} review</i>, <strong>~{formatMinutes(planMath.estimatedDailyMinutes)}</strong>.</h2>
+                <div className="sp-today-bars">
+                  <Bar label="Today's new questions" done={planMath.todayAnswered} total={planMath.dailyQuestions} color={RUBY.yellow} dark />
+                  <Bar label="Question bank coverage" done={snapshot.mastered} total={TOTAL_QUESTIONS} color={RUBY.green} dark />
+                </div>
+                <div className="sp-today-actions">
+                  <button type="button" className="sp-primary" onClick={() => { persistPlan(); setToast(`Start session · ${planMath.sessionSize} questions`); }}>Start session · {planMath.sessionSize} questions →</button>
+                  <button type="button" className="sp-rest" onClick={() => setToast('Rest day logged. Keep the plan gentle.')}>Log a rest day</button>
+                  <p>"{planEncouragement}"</p>
+                </div>
+              </div>
+            </section>
+
+            <DomainAnalytics snapshot={snapshot} planMath={planMath} />
+
+            <section className="sp-section" ref={planSectionRef}>
+              <div className="sp-section-head">
+                <div><div className="sp-eyebrow">Your plan</div><h2>{selectedOption.name}{selectedOption.isRecommended && <span className="sp-rec">recommended</span>}</h2></div>
+                <button type="button" className="sp-change" onClick={() => setPicker((open) => !open)}>{picker ? 'Close picker' : 'Change plan →'}</button>
+              </div>
+              <div className="sp-plan-card">
+                <p>{selectedOption.bestFor}</p>
+                <PhaseTimeline planMath={planMath} />
+                <div className="sp-plan-bottom">
+                  <div>
+                    <div className="sp-card-kicker">This plan, in numbers</div>
+                    <div className="sp-number-table">
+                      {[
+                        [planMath.dailyQuestions, 'new/day'],
+                        [planMath.dailyReview, 'review/day'],
+                        [planMath.mockExams, 'mocks'],
+                        [formatMinutes(planMath.estimatedDailyMinutes), 'est/day'],
+                        [planMath.dailyCapacity, 'capacity'],
+                      ].map(([value, label]) => <div key={label} className={label === 'capacity' ? 'subtle' : ''}><strong>{value}</strong><span>{label}</span></div>)}
+                    </div>
+                    <div className="sp-advice">{adjustmentAdvice}</div>
+                  </div>
+                  <div>
+                    <div className="sp-card-kicker">Fine-tune today</div>
+                    <label className="sp-slider"><span>New questions / day <b>{planMath.dailyQuestions}</b></span><input type="range" min={1} max={Math.max(300, planMath.dailyQuestions + 80)} value={planMath.dailyQuestions} onChange={(event) => setCustomDailyQuestions(Number(event.target.value))} /></label>
+                    <label className="sp-slider"><span>Review / day <b>{planMath.dailyReview}</b></span><input type="range" min={0} max={Math.max(250, planMath.dailyReview + 60)} value={planMath.dailyReview} onChange={(event) => setCustomDailyReview(Number(event.target.value))} /></label>
+                    <div className="sp-risk">Risk: <b>{planMath.risk}</b> · {planMath.coverageStudyDays}d coverage · {planMath.reviewBlockDays}d review · {planMath.mockReviewDays}d mocks · {planMath.finalReviewDays}d final</div>
+                  </div>
+                </div>
+              </div>
+
+              {picker && (
+                <div className="sp-picker">
+                  <div className="sp-picker-head"><span>Tap to switch</span><b>your capacity ≈ {planMath.dailyCapacity} q/day at {dailyMinutes}m study</b></div>
+                  <div className="sp-picker-grid">
+                    {planOptions.map((option, index) => {
+                      const selected = option.type === selectedPlanType;
+                      const over = option.dailyQuestions > planMath.dailyCapacity;
+                      return (
+                        <button key={option.type} type="button" className={`${selected ? 'selected' : ''} ${over ? 'over' : ''}`} onClick={() => choosePlan(option.type)}>
+                          <div className="sp-plan-label"><span>Plan {String.fromCharCode(65 + index)}</span><i>{option.isRecommended && 'REC'}{over && ` OVER ${option.dailyQuestions - planMath.dailyCapacity}`}</i></div>
+                          <h3>{option.name.replace(/^Plan [A-D] - /, '')}</h3>
+                          <p>{option.bestFor}</p>
+                          <div className="sp-mini-stats"><span><b>{option.dailyQuestions}</b>new</span><span><b>{option.dailyReview}</b>review</span><span><b>{option.mockExams}</b>mocks</span></div>
+                          {selected && <em>✓</em>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p>Plans marked OVER need more daily study time than you set — pick one within capacity or bump your daily minutes in goal settings.</p>
+                </div>
+              )}
+            </section>
+
+            <section className="sp-library sp-section">
+              <div className="sp-eyebrow">Library</div>
+              <h2>Pick up where you left off</h2>
+              <div>
+                {[
+                  [snapshot.savedCount, 'Saved', 'Marked for later', RUBY.yellow],
+                  [snapshot.wrongCount, 'Mistakes', 'Biggest score lift', RUBY.accent],
+                  [snapshot.mastered, 'Mastered', `of ${TOTAL_QUESTIONS} total`, RUBY.green],
+                ].map(([value, label, sub, color]) => (
+                  <button type="button" key={label} style={{ borderLeftColor: String(color) }}>
+                    <span><strong>{value}</strong><b>{label}</b><i>{sub}</i></span><em>↗</em>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </main>
+
+          <aside className="sp-sidebar">
+            <section className="sp-profile-card">
+              <div>
+                <div className="sp-avatar">
+                  {avatarSrc ? <img src={avatarSrc} alt={`${displayName} avatar`} /> : displayName.charAt(0).toUpperCase()}
+                  <label><Camera size={13} /><input className="sr-only" type="file" aria-label="Upload avatar photo" accept="image/*" onChange={(event) => handleAvatarUpload(event.target.files?.[0])} /></label>
+                </div>
+                <div><h2>{displayName}</h2><p>{session.user.email}</p></div>
+              </div>
+              <span><i /> CLF-C02 candidate</span>
+            </section>
+            <section className="sp-side-card">
+              <div className="sp-card-kicker">Progress</div>
+              <div className="sp-progress-stats"><div><strong>{snapshot.mastered}</strong><span>mastered</span></div><div><strong>{snapshot.totalDone}</strong><span>answered</span></div><div><strong className={(snapshot.accuracy ?? 0) < 60 ? 'sp-red' : 'sp-green'}>{snapshot.accuracy ? `${snapshot.accuracy}%` : '-'}</strong><span>accuracy</span></div></div>
+              <div className="sp-progress-track"><div style={{ width: `${coveragePct}%`, background: RUBY.green }} /></div>
+              <div className="sp-progress-caption"><span>{snapshot.mastered} / {TOTAL_QUESTIONS}</span><span>{coveragePct}% of bank</span></div>
+            </section>
+            <section className="sp-side-card">
+              <div className="sp-schedule-head"><div className="sp-card-kicker">Schedule</div><button type="button" onClick={() => setEditingGoal(true)}>edit</button></div>
+              {[
+                ['Daily study', `${dailyMinutes} min`],
+                ['Days per week', `${daysPerWeek} days`],
+                ['Mode', level === 'new' ? 'New learner' : level === 'reviewing' ? 'Reviewing' : 'Final sprint'],
+                ['Timezone', userTimeZone().split('/').pop() ?? userTimeZone()],
+              ].map(([label, value]) => <div className="sp-setting-row" key={label}><span>{label}</span><b>{value}</b></div>)}
+            </section>
+            <section className="sp-streak"><div>●●●●●○○</div><p>5-day streak. keep going.</p></section>
+          </aside>
+        </div>
+      </div>
+
+      {editingGoal && (
+        <EditGoalModal
+          plan={currentPlan}
+          snapshot={snapshot}
+          onClose={() => setEditingGoal(false)}
+          onSave={handleGoalSave}
+        />
+      )}
+      {toast && <div className="sp-toast" onAnimationEnd={() => setToast('')}>{toast}</div>}
+    </div>
+  );
+}
+
+function LegacyStudyPlanPage({
   session,
   initialPlan,
   mode,

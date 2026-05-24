@@ -91,3 +91,223 @@
 [2m7:23:22 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/widgets/widgets.css[22m
 [2m7:23:38 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/widgets/widgets.css[22m
 [2m7:23:55 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/focus-timer/sticky-notes.css[22m
+[2m7:42:25 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m7:42:26 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m7:42:26 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m7:42:30 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m7:42:31 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m7:42:31 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m7:42:39 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m7:42:40 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m7:42:40 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m7:43:07 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m7:43:08 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m7:43:08 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m7:43:15 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m7:43:16 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m7:43:16 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m7:43:22 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m7:43:22 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m7:43:22 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:05:03 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:05:04 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:05:04 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:05:14 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:05:15 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:05:15 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:06:11 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:06:12 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:06:12 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:06:41 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:06:41 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:06:41 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:06:57 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:06:58 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:06:58 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:07:44 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:07:44 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:07:44 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:07:59 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:08:00 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:08:00 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:08:05 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:08:06 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:08:06 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:08:11 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:08:11 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:08:11 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:08:20 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:08:20 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:08:20 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:08:55 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:08:56 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: D:\StudyCouch\apps\web\src\features\study-plan\StudyPlanPage.tsx: Expected corresponding JSX closing tag for <motion.section>. (1477:10)
+
+[0m [90m 1475 |[31m               [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 1476 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 1477 |[31m           [33m<[31m[33m/[31m[33msection[31m[33m>[31m
+ [90m      |[31m           [31m[1m^[22m[31m
+ [90m 1478 |[31m         )}
+ [90m 1479 |[31m
+ [90m 1480 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mD:/StudyCouch/apps/web/src/features/study-plan/StudyPlanPage.tsx[39m:1477:10
+[33m  1475 |                </div>
+  1476 |              </div>
+  1477 |            </section>
+       |            ^
+  1478 |          )}
+  1479 |  [39m
+      at constructor (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:365:19)
+      at TypeScriptParserMixin.raise (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:6616:19)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4739:16)
+      at TypeScriptParserMixin.jsxParseElement (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4761:17)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4771:19)
+      at TypeScriptParserMixin.parseExprSubscripts (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10848:21)
+      at D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9792:39
+      at TypeScriptParserMixin.tryParse (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:6924:20)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9792:18)
+      at D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10817:39
+      at TypeScriptParserMixin.allowInAnd (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:12443:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10817:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:12510:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11692:28)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11348:23)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11003:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10998:21)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10964:27)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9323:18)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10970:21)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9323:18)
+      at TypeScriptParserMixin.parseExprOps (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10925:17)
+      at TypeScriptParserMixin.parseMaybeConditional (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9803:20)
+      at TypeScriptParserMixin.parseExpressionBase (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10801:23)
+      at D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10797:39
+      at TypeScriptParserMixin.allowInAnd (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:12443:12)
+      at TypeScriptParserMixin.parseExpression (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10797:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4644:31)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4723:36)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4710:32)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4710:32)
+      at TypeScriptParserMixin.jsxParseElement (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4761:17)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4771:19)
+      at TypeScriptParserMixin.parseExprSubscripts (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11083:21)
+[2m8:08:56 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: D:\StudyCouch\apps\web\src\features\study-plan\StudyPlanPage.tsx: Expected corresponding JSX closing tag for <motion.section>. (1477:10)
+
+[0m [90m 1475 |[31m               [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 1476 |[31m             [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+[31m[1m>[22m[31m[90m 1477 |[31m           [33m<[31m[33m/[31m[33msection[31m[33m>[31m
+ [90m      |[31m           [31m[1m^[22m[31m
+ [90m 1478 |[31m         )}
+ [90m 1479 |[31m
+ [90m 1480 |[31m       [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mD:/StudyCouch/apps/web/src/features/study-plan/StudyPlanPage.tsx[39m:1477:10
+[33m  1475 |                </div>
+  1476 |              </div>
+  1477 |            </section>
+       |            ^
+  1478 |          )}
+  1479 |  [39m
+      at constructor (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:365:19)
+      at TypeScriptParserMixin.raise (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:6616:19)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4739:16)
+      at TypeScriptParserMixin.jsxParseElement (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4761:17)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4771:19)
+      at TypeScriptParserMixin.parseExprSubscripts (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10848:21)
+      at D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9792:39
+      at TypeScriptParserMixin.tryParse (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:6924:20)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9792:18)
+      at D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10817:39
+      at TypeScriptParserMixin.allowInAnd (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:12443:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10817:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:12510:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11692:28)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11348:23)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4776:20)
+      at TypeScriptParserMixin.parseExprSubscripts (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11003:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10998:21)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10964:27)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9323:18)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10970:21)
+      at TypeScriptParserMixin.parseExprOp (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9323:18)
+      at TypeScriptParserMixin.parseExprOps (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10925:17)
+      at TypeScriptParserMixin.parseMaybeConditional (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10848:21)
+      at TypeScriptParserMixin.parseMaybeAssign (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:9803:20)
+      at TypeScriptParserMixin.parseExpressionBase (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10801:23)
+      at D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10797:39
+      at TypeScriptParserMixin.allowInAnd (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:12443:12)
+      at TypeScriptParserMixin.parseExpression (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:10797:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4644:31)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4723:36)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4710:32)
+      at TypeScriptParserMixin.jsxParseElementAt (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4710:32)
+      at TypeScriptParserMixin.jsxParseElement (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4761:17)
+      at TypeScriptParserMixin.parseExprAtom (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:4771:19)
+      at TypeScriptParserMixin.parseExprSubscripts (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (D:\StudyCouch\apps\web\node_modules\@babel\parser\lib\index.js:11083:21)
+[2m8:09:00 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:09:01 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:09:01 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:30:57 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:30:58 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:30:58 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:31:03 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:31:03 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:31:03 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:31:54 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:31:55 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:31:55 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:32:46 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:32:47 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:32:47 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:40:21 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:40:22 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:40:22 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:40:28 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:40:29 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:40:29 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m8:41:46 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m8:41:46 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/features/study-plan/StudyPlanPage.tsx[22m Could not Fast Refresh ("calculatePlan" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+[2m8:41:46 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/features/widgets/SmallWidgets.tsx[22m
+[2m10:45:54 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m10:46:07 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m10:47:06 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m10:51:38 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m10:51:46 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m10:53:16 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m10:55:19 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/studyplan.css[22m
+[2m11:00:01 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m11:00:20 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m11:00:36 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
+[2m11:01:28 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/studyplan.css[22m
+[2m11:01:51 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/studyplan.css[22m
+[2m11:05:53 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/features/study-plan/StudyPlanPage.tsx, /src/styles/globals.css[22m
