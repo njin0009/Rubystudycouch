@@ -98,7 +98,7 @@ export function ExamCountdownWidget({ onClose }: { onClose: () => void }) {
 const BREAK_LS = 'studycouch_break_reminder';
 interface BreakPrefs { intervalMins: number; enabled: boolean }
 
-function loadBreakPrefs(): BreakPrefs {
+function loadBreakPrefs(): Partial<BreakPrefs> {
   try { return JSON.parse(localStorage.getItem(BREAK_LS) ?? '{}') as BreakPrefs; }
   catch { return { intervalMins: 45, enabled: false }; }
 }
