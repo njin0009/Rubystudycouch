@@ -27,6 +27,11 @@ let S={
   sessionWrongIds:[],
   wrongMap:{},
   bmMap:{},markMap:{},correctMap:{},
+  wrongCountMap:{},    // qid → total wrong attempt count (never decremented)
+  correctCountMap:{},  // qid → total correct attempt count (never decremented)
+  planNewTarget:0,     // daily new quota from study plan
+  planReviewTarget:0,  // daily review quota from study plan
+  questionsTag:'all',questionsSearch:'',
   comments:{},        // { qid: 'user note text' }
   totalDone:0,totalRight:0,
   checkinDates:[],
@@ -56,6 +61,7 @@ function makeDataPackage(){
     version:2,app:'CLF-C02 StudyCoach',exportedAt:new Date().toISOString(),profileId:activeProfile,
     data:{
       wrongMap:S.wrongMap,bmMap:S.bmMap,markMap:S.markMap,correctMap:S.correctMap,comments:S.comments,
+      wrongCountMap:S.wrongCountMap,correctCountMap:S.correctCountMap,
       totalDone:S.totalDone,totalRight:S.totalRight,checkinDates:S.checkinDates,
       dailyCount:S.dailyCount,dailyCatCount:S.dailyCatCount,
       currentScreen:S.currentScreen,
@@ -74,6 +80,7 @@ function applyDataPackage(pkg){
   const d=pkg&&pkg.data?pkg.data:pkg;
   if(!d||typeof d!=='object')throw new Error('Invalid backup file');
   S.wrongMap=d.wrongMap||{};S.bmMap=d.bmMap||{};S.markMap=d.markMap||{};S.correctMap=d.correctMap||{};S.comments=d.comments||{};
+  S.wrongCountMap=d.wrongCountMap||{};S.correctCountMap=d.correctCountMap||{};
   S.totalDone=d.totalDone||0;S.totalRight=d.totalRight||0;
   S.checkinDates=d.checkinDates||[];
   S.dailyCount=d.dailyCount||{};S.dailyCatCount=d.dailyCatCount||{};
@@ -121,6 +128,8 @@ function mergeCloudData(d){
   for(const qid of Object.keys(S.correctMap||{})){
     if(d.correctMap&&d.correctMap[qid]&&S.wrongMap[qid]&&d.wrongMap&&!d.wrongMap[qid])delete S.wrongMap[qid];
   }
+  mergeCountMap(S.wrongCountMap,d.wrongCountMap);
+  mergeCountMap(S.correctCountMap,d.correctCountMap);
   mergeMap(S.bmMap,d.bmMap);
   mergeMap(S.markMap,d.markMap);
   mergeMap(S.comments,d.comments);
@@ -187,6 +196,7 @@ function importProfile(input){
 }
 function resetStudyData(preserveProfile=true){
   S.wrongMap={};S.bmMap={};S.markMap={};S.correctMap={};S.comments={};
+  S.wrongCountMap={};S.correctCountMap={};
   S.totalDone=0;S.totalRight=0;S.checkinDates=[];S.dailyCount={};S.dailyCatCount={};
   S.qs=[];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];S.currentScreen='home-screen';
   window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:false}));
@@ -411,7 +421,7 @@ function showScreen(id){
   // highlight active
   document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active-link'));
   const map={
-    'progress-screen':1,'review-screen':2,'bookmarks-screen':3,'check-screen':4
+    'progress-screen':1,'review-screen':2,'bookmarks-screen':3,'check-screen':4,'questions-screen':5
   };
   const links=document.querySelectorAll('.nav-links .nav-link');
   if(map[id])links[map[id]-1].classList.add('active-link');
@@ -473,6 +483,14 @@ function updateStats(){
   document.getElementById('stat-acc').textContent=S.totalDone>0?Math.round(S.totalRight/S.totalDone*100)+'%':'—';
   document.getElementById('stat-remaining').textContent=remaining;
   document.getElementById('stat-days').textContent=days;
+  // update plan-target row if present
+  const planRow=document.getElementById('plan-target-row');
+  if(planRow){
+    planRow.style.display=(S.planNewTarget||S.planReviewTarget)?'flex':'none';
+    const nl=document.getElementById('plan-new-lbl');const rl=document.getElementById('plan-review-lbl');
+    if(nl)nl.textContent=`New: ${getNewPool().length} available (${S.planNewTarget}/day)`;
+    if(rl)rl.textContent=`Review: ${getReviewPool().length} in pool (${S.planReviewTarget}/day)`;
+  }
 }
 function toggleMenu(){const m=document.getElementById('nav-menu');if(m)m.classList.toggle('open');}
 document.addEventListener('click',e=>{const m=document.getElementById('nav-menu');if(!m)return;if(m.classList.contains('open')&&!m.contains(e.target)&&!e.target.closest('.nav-hamburger'))m.classList.remove('open');});
@@ -484,9 +502,43 @@ function selectCat(btn){document.querySelectorAll('#cat-chips .cat-chip').forEac
 function selectType(btn){document.querySelectorAll('#type-chips .cat-chip').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');S.type=btn.dataset.type;}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
+/* ── TAG SYSTEM ── */
+const TAG_COLOR={new:'#6b7280',done:'#2563eb',mistake:'#dc2626',saved:'#d97706',severe:'#9333ea',fix:'#16a34a'};
+function getQTags(qid){
+  const wc=S.wrongCountMap[qid]||0,cc=S.correctCountMap[qid]||0,inBm=!!S.bmMap[qid];
+  const isFix=(wc>0||inBm)&&cc>=3;
+  const tags=[];
+  if(!wc&&!cc&&!inBm)tags.push('new');
+  if(wc>0||cc>0)tags.push('done');
+  if(wc>0&&!isFix)tags.push('mistake');
+  if(inBm)tags.push('saved');
+  if(wc>=3&&!isFix)tags.push('severe');
+  if(isFix)tags.push('fix');
+  return tags;
+}
+function getNewPool(){
+  return ALL_QUESTIONS.filter(q=>!(S.wrongCountMap[q.id]||0)&&!(S.correctCountMap[q.id]||0)&&!S.bmMap[q.id]);
+}
+function getReviewPool(){
+  return ALL_QUESTIONS.filter(q=>{
+    const wc=S.wrongCountMap[q.id]||0,cc=S.correctCountMap[q.id]||0,inBm=!!S.bmMap[q.id];
+    const isFix=(wc>0||inBm)&&cc>=3;
+    return !isFix&&(wc>0||inBm);
+  });
+}
+function tagChipsHtml(qid){
+  return getQTags(qid).map(t=>`<span class="tag tag-${t}" style="background:${TAG_COLOR[t]}1a;color:${TAG_COLOR[t]};border:1px solid ${TAG_COLOR[t]}40;">${t[0].toUpperCase()+t.slice(1)}</span>`).join('');
+}
+function allTagCounts(pool){
+  const c={new:0,done:0,mistake:0,saved:0,severe:0,fix:0};
+  (pool||ALL_QUESTIONS).forEach(q=>{getQTags(q.id).forEach(t=>{if(c[t]!==undefined)c[t]++;});});
+  return c;
+}
+
 /* ── SESSION ── */
 function startSession(){
   let pool=[...ALL_QUESTIONS];
+  let useCount=S.count;
   if(S.mode==='wrong'){
     const ids=Object.keys(S.wrongMap).map(Number);
     pool=ALL_QUESTIONS.filter(q=>ids.includes(q.id));
@@ -498,10 +550,24 @@ function startSession(){
     if(!pool.length){toast('Nothing saved yet — star questions while studying');return;}
   }
   else if(S.mode==='category'&&S.cat!=='all')pool=ALL_QUESTIONS.filter(q=>q.category===S.cat);
+  else if(S.mode==='new'){
+    pool=getNewPool();
+    if(!pool.length){toast('No new questions left — all 719 have been attempted!');return;}
+    useCount=S.planNewTarget||S.count;
+  }
+  else if(S.mode==='review'){
+    pool=getReviewPool();
+    if(!pool.length){toast('Review pool empty — no mistakes or saved questions yet!');return;}
+    pool.sort((a,b)=>{
+      const rank=q=>{const wc=S.wrongCountMap[q.id]||0;return wc>=3?0:wc>0?1:2;};
+      return rank(a)-rank(b);
+    });
+    useCount=S.planReviewTarget||S.count;
+  }
   pool=filterByType(pool,S.type);
   if(!pool.length){toast('No questions match this type filter');return;}
-  shuffle(pool);
-  S.qs=pool.slice(0,Math.min(S.count,pool.length));S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];
+  if(S.mode!=='new'&&S.mode!=='review')shuffle(pool);
+  S.qs=pool.slice(0,Math.min(useCount,pool.length));S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];
   resetTimer(false);
   S.timer.running=true;S.timer.lastTick=Date.now();
   save();
@@ -650,8 +716,8 @@ function pick(key){
   const q=curQ();if(S.ans[q.id]||q.multi)return;
   const ok=keysMatch([key],correctKeys(q));
   S.ans[q.id]={sel:key,ok};S.totalDone++;recordDaily(q);
-  if(ok){S.totalRight++;S.correctMap[q.id]=today();delete S.wrongMap[q.id];}
-  else{S.wrongMap[q.id]=today();S.sessionWrongIds.push(q.id);}
+  if(ok){S.totalRight++;S.correctMap[q.id]=today();delete S.wrongMap[q.id];S.correctCountMap[q.id]=(S.correctCountMap[q.id]||0)+1;}
+  else{S.wrongMap[q.id]=today();S.sessionWrongIds.push(q.id);S.wrongCountMap[q.id]=(S.wrongCountMap[q.id]||0)+1;}
   syncAttempt(q,[key],ok);
   save();renderQ();
   const nb=document.getElementById('next-btn');nb.classList.add('pop');setTimeout(()=>nb.classList.remove('pop'),200);
@@ -745,8 +811,8 @@ function submitMulti(){
   const sel=selected.join('');
   const ok=keysMatch(S.multiPending||[],correctKeys(q));
   S.ans[q.id]={sel,ok};S.totalDone++;recordDaily(q);
-  if(ok){S.totalRight++;S.correctMap[q.id]=today();delete S.wrongMap[q.id];}
-  else{S.wrongMap[q.id]=today();S.sessionWrongIds.push(q.id);}
+  if(ok){S.totalRight++;S.correctMap[q.id]=today();delete S.wrongMap[q.id];S.correctCountMap[q.id]=(S.correctCountMap[q.id]||0)+1;}
+  else{S.wrongMap[q.id]=today();S.sessionWrongIds.push(q.id);S.wrongCountMap[q.id]=(S.wrongCountMap[q.id]||0)+1;}
   syncAttempt(q,selected,ok);
   S.multiPending=[];
   save();renderQ();
@@ -1249,8 +1315,7 @@ function renderDateCards(items,body,isWrong,map,period){
         <div class="q-card-meta">
           <span class="cat-pill ${cat.cls}" style="font-size:.62rem">${cat.lbl}</span>
           <span class="tag">${questionTypeLabel(q)}</span>
-          ${isWrong?'<span class="tag wrong-tag">Mistake</span>':''}
-          ${S.bmMap[q.id]?'<span class="tag bm-tag">★ Saved</span>':''}
+          ${tagChipsHtml(q.id)}
           <span class="tag pdf-tag">📄 p.${q.id}</span>
           ${commentText?'<span style="font-size:.62rem;background:var(--amber-lt);border:1px solid var(--amber-md);color:var(--amber);border-radius:5px;padding:.08rem .42rem;font-weight:600;">✏️</span>':''}
         </div>
@@ -1299,6 +1364,86 @@ function removeBm(id){
 
 function jumpTo(id){const q=ALL_QUESTIONS.find(x=>x.id===id);if(!q)return;S.qs=[q];S.idx=0;S.ans={};S.sessionWrongIds=[];S.multiPending=[];save();window.dispatchEvent(new CustomEvent('studycouch:quiz-state',{detail:true}));showScreen('quiz-screen');renderQ();}
 
+/* ── ALL QUESTIONS BROWSER ── */
+function renderTagBar(counts,total){
+  if(total===0)return '<div style="color:var(--ink3);font-size:.8rem;padding:.5rem 0;">No questions in this filter.</div>';
+  const TAGS=[
+    {key:'new',label:'New',color:'#6b7280'},
+    {key:'done',label:'Done',color:'#2563eb'},
+    {key:'mistake',label:'Mistake',color:'#dc2626'},
+    {key:'severe',label:'Severe',color:'#9333ea'},
+    {key:'saved',label:'Saved',color:'#d97706'},
+    {key:'fix',label:'Fix',color:'#16a34a'},
+  ];
+  return TAGS.map(t=>{
+    const n=counts[t.key]||0;
+    const pct=total>0?Math.round(n/total*100):0;
+    const w=total>0?Math.max(2,Math.round(n/total*100)):0;
+    return `<div class="tag-bar-row" onclick="filterQByTag('${t.key}')" style="cursor:pointer;display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;padding:.2rem .35rem;border-radius:6px;transition:background .1s;" onmouseover="this.style.background='rgba(0,0,0,.04)'" onmouseout="this.style.background='transparent'">
+      <div style="width:68px;font-size:.72rem;font-weight:700;color:${t.color};">${t.label}</div>
+      <div style="flex:1;background:rgba(0,0,0,.07);border-radius:4px;height:8px;overflow:hidden;">
+        <div style="height:100%;width:${w}%;background:${t.color};border-radius:4px;transition:width .3s;"></div>
+      </div>
+      <div style="width:52px;font-size:.72rem;color:var(--ink2);text-align:right;">${n} <span style="color:var(--ink3)">(${pct}%)</span></div>
+    </div>`;
+  }).join('');
+}
+function renderQBrowserCard(q){
+  const cat=getCat(q.category);
+  const txt=q.question.length>120?q.question.substring(0,120)+'…':q.question;
+  return `<div class="q-card" style="cursor:pointer" onclick="jumpTo(${q.id})">
+    <div class="q-card-top">
+      <div class="q-card-txt">${txt}</div>
+      <div class="q-card-badge">#${q.id}</div>
+    </div>
+    <div class="q-card-meta">
+      <span class="cat-pill ${cat.cls}" style="font-size:.62rem">${cat.lbl}</span>
+      <span class="tag">${questionTypeLabel(q)}</span>
+      ${tagChipsHtml(q.id)}
+    </div>
+  </div>`;
+}
+function renderQuestionsList(){
+  const tag=S.questionsTag||'all',q=(S.questionsSearch||'').toLowerCase().trim();
+  const filtered=ALL_QUESTIONS.filter(qn=>{
+    const tags=getQTags(qn.id);
+    const tagOk=tag==='all'||tags.includes(tag);
+    const textOk=!q||qn.question.toLowerCase().includes(q)||String(qn.id)===q;
+    return tagOk&&textOk;
+  });
+  const counts=allTagCounts(filtered);
+  const chartWrap=document.getElementById('tag-chart-wrap');
+  if(chartWrap){
+    const total=filtered.length;
+    chartWrap.innerHTML=`<div style="padding:.5rem 1rem .3rem;max-width:760px;margin:0 auto;">
+      <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:.5rem;">Tag Distribution — ${total} question${total!==1?'s':''}</div>
+      ${renderTagBar(counts,total)}
+    </div>`;
+  }
+  const body=document.getElementById('questions-body');
+  if(!body)return;
+  if(!filtered.length){
+    body.innerHTML='<div class="empty-state"><span class="empty-icon">🔍</span><p>No questions match your search.</p></div>';
+    return;
+  }
+  // Show first 200 to avoid huge DOM
+  const shown=filtered.slice(0,200);
+  body.innerHTML=shown.map(renderQBrowserCard).join('')+(filtered.length>200?`<div style="text-align:center;padding:1rem;color:var(--ink3);font-size:.8rem;">Showing 200 of ${filtered.length} — refine your search to see more.</div>`:'');
+}
+function filterQByTag(tag){
+  S.questionsTag=tag;
+  document.querySelectorAll('#questions-tag-chips .tag-chip').forEach(b=>b.classList.toggle('active',b.dataset.tag===tag));
+  renderQuestionsList();
+}
+function showQuestions(){
+  S.questionsTag='all';S.questionsSearch='';
+  const inp=document.getElementById('q-search');if(inp)inp.value='';
+  document.querySelectorAll('#questions-tag-chips .tag-chip').forEach(b=>b.classList.toggle('active',b.dataset.tag==='all'));
+  renderQuestionsList();
+  showScreen('questions-screen');
+}
+window.showQuestions=showQuestions;
+
 /* ── RESET ALL ── */
 function resetAllData(){
   if(!confirm('Reset ALL data? This clears this account progress, mistakes, saved questions, notes, and check-ins locally and in the cloud. New records will start after this reset. Cannot be undone.'))return;
@@ -1314,6 +1459,12 @@ function resetAllData(){
     console.warn('StudyCouch cloud clear failed:',err);
   });
 }
+
+/* ── PLAN BRIDGE ── */
+window.studyCouchSetPlanTargets=function(n,r){
+  S.planNewTarget=n||0;S.planReviewTarget=r||0;
+  updateStats();
+};
 
 /* ── TOAST ── */
 let tTimer=null;
@@ -1361,6 +1512,8 @@ document.addEventListener('visibilitychange',function(){
     showBookmarks();
   }else if(S.currentScreen==='check-screen'){
     showCheck();
+  }else if(S.currentScreen==='questions-screen'){
+    showQuestions();
   }else{
     goHome();
   }
@@ -1381,6 +1534,8 @@ if(S.currentScreen==='quiz-screen'&&S.qs&&S.qs.length){
   showBookmarks();
 }else if(S.currentScreen==='check-screen'){
   showCheck();
+}else if(S.currentScreen==='questions-screen'){
+  showQuestions();
 }else{
   renderResumeBtn();
   window.dispatchEvent(new CustomEvent('studycouch:screen-change',{detail:'home-screen'}));
@@ -1396,6 +1551,7 @@ window.restoreCurrentScreen=function(){
   else if(S.currentScreen==='review-screen'){showReview();}
   else if(S.currentScreen==='bookmarks-screen'){showBookmarks();}
   else if(S.currentScreen==='check-screen'){showCheck();}
+  else if(S.currentScreen==='questions-screen'){showQuestions();}
   else{showScreen('home-screen');updateStats();renderCheckin();renderProfiles();renderResumeBtn();}
   if(_inProg&&S.currentScreen!=='quiz-screen')showResumePopup();
 };

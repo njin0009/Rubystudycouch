@@ -797,6 +797,11 @@ export function StudyPlanMiniCard({
 }) {
   const planMath = calculatePlan(plan, snapshot);
 
+  // Bridge: keep legacy engine's pool-count display in sync with the active plan
+  if (typeof window.studyCouchSetPlanTargets === 'function') {
+    window.studyCouchSetPlanTargets(planMath.dailyQuestions, planMath.dailyReview);
+  }
+
   return (
     <section className="fixed bottom-4 right-4 z-[125] w-[min(360px,calc(100vw-2rem))] rounded-lg border border-stone-200 bg-white p-3 text-stone-950 shadow-lg sp-mini-card">
       <div className="mb-2 flex items-center justify-between gap-3">

@@ -17,6 +17,8 @@ declare global {
           bmMap: Record<string, string>;
           markMap: Record<string, string>;
           correctMap: Record<string, string>;
+          wrongCountMap: Record<string, number>;
+          correctCountMap: Record<string, number>;
           comments: Record<string, string>;
           totalDone: number;
           totalRight: number;
@@ -46,9 +48,11 @@ declare global {
     showReview?: () => void;
     showBookmarks?: () => void;
     showCheck?: () => void;
+    showQuestions?: () => void;
     goQuiz?: () => void;
     restoreCurrentScreen?: () => void;
     reloadStudyData?: () => void;
+    studyCouchSetPlanTargets?: (newCount: number, reviewCount: number) => void;
   }
 }
 

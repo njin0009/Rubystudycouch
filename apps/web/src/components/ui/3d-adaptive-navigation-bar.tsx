@@ -12,7 +12,7 @@ const navItems: NavItem[] = [
   { label: 'Progress', id: 'progress-screen', action: () => window.showProgress?.() },
   { label: 'Mistakes', id: 'review-screen', action: () => window.showReview?.() },
   { label: 'Saved', id: 'bookmarks-screen', action: () => window.showBookmarks?.() },
-  { label: 'Integrity', id: 'check-screen', action: () => window.showCheck?.() },
+  { label: 'Questions', id: 'questions-screen', action: () => window.showQuestions?.() },
 ];
 
 // quiz-screen and result-screen are not in navItems — show a neutral label instead

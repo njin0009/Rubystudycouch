@@ -14,6 +14,8 @@ export interface StudySnapshot {
   bmMap: Record<string, string>;
   markMap: Record<string, string>;
   correctMap: Record<string, string>;
+  wrongCountMap: Record<string, number>;
+  correctCountMap: Record<string, number>;
   comments: Record<string, string>;
   totalDone: number;
   totalRight: number;
@@ -130,6 +132,8 @@ export async function loadStudySnapshot() {
     bmMap: {},
     markMap: {},
     correctMap: {},
+    wrongCountMap: {},
+    correctCountMap: {},
     comments: {},
     totalDone: 0,
     totalRight: 0,
@@ -155,8 +159,10 @@ export async function loadStudySnapshot() {
       snapshot.totalRight += 1;
       snapshot.correctMap[questionId] = date;
       delete snapshot.wrongMap[questionId];
+      snapshot.correctCountMap[questionId] = (snapshot.correctCountMap[questionId] ?? 0) + 1;
     } else {
       snapshot.wrongMap[questionId] = date;
+      snapshot.wrongCountMap[questionId] = (snapshot.wrongCountMap[questionId] ?? 0) + 1;
     }
   }
 
